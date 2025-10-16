@@ -1,0 +1,38 @@
+cat > .gitignore << 'EOF'
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+out/
+
+### VS Code ###
+.vscode/
+
+### Eclipse ###
+.classpath
+.project
+.settings/
+bin/
+
+### Spring Boot ###
+target/
+!**/src/main/**
+!**/src/test/**
+
+### MacOS ###
+.DS_Store
+
+### Environment ###
+.env
+*.env
+application-local.yml
+
+### Java ###
+*.class
+*.log
+EOF
