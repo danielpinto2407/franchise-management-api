@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: franchise-management-api
+  
+  data:
+    mongodb:
+      uri: mongodb+srv://danielpinto2407_db_user:ZuVoInMrn002pqZQ@cluster0.o6uappn.mongodb.net/franchise?retryWrites=true&w=majority&appName=Cluster0
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.franchise.management: DEBUG
+    org.springframework.data.mongodb.core: DEBUG
