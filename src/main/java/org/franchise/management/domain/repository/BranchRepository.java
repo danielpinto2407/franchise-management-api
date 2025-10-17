@@ -5,8 +5,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * ✅ Este puerto soportará los endpoints para agregar y modificar sucursales
- * dentro de una franquicia.
+ * ✅ Puerto del dominio para la gestión de sucursales.
+ * Soporta operaciones reactivas con MongoDB.
  */
 public interface BranchRepository {
 
@@ -14,8 +14,9 @@ public interface BranchRepository {
 
     Flux<Branch> findAllByFranchise(String franchiseId);
 
-    Mono<Branch> findById(String franchiseId, String branchId);
+    Mono<Branch> findById(String branchId);
 
-    Mono<Branch> updateBranchName(String franchiseId, String branchId, String newName);
+    Mono<Branch> updateBranchName(String branchId, String newName);
 
+    Mono<Void> deleteBranchFromFranchise(String franchiseId, String branchId);
 }

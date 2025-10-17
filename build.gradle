@@ -19,6 +19,11 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	all {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: 'ch.qos.logback'
+        exclude group: 'org.slf4j', module: 'log4j-to-slf4j'
+    }
 }
 
 repositories {
@@ -66,3 +71,4 @@ jacocoTestReport {
         html.required = true
     }
 }
+
