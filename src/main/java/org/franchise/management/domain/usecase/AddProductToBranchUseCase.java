@@ -1,0 +1,24 @@
+package org.franchise.management.domain.usecase;
+
+import org.franchise.management.domain.model.Product;
+import org.franchise.management.domain.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import reactor.core.publisher.Mono;
+
+@RequiredArgsConstructor
+@Log4j2
+public class AddProductToBranchUseCase {
+
+    private final ProductRepository productRepository;
+
+    public Mono<Product> addProduct(String franchiseId, String branchId, Product product) {
+        return productRepository.addProductToBranch(franchiseId, branchId, product)
+                .doOnNext(p -> log.info("✅ Producto agregado: " + p.getName()))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Sucursal no encontrada.")))
+                .onErrorResume(e -> {
+                    log.error("❌ Error al agregar producto: " + e.getMessage());
+                    return Mono.error(e);
+                });
+    }
+}
