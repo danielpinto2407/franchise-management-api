@@ -1,4 +1,4 @@
-package org.franchise.management.domain.usecase;
+package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
