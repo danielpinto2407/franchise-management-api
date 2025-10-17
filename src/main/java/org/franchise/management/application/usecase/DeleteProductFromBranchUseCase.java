@@ -1,10 +1,13 @@
 package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.repository.ProductRepository;
+import org.springframework.stereotype.Service;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Mono;
 
+@Service
 @RequiredArgsConstructor
 @Log4j2
 public class DeleteProductFromBranchUseCase {

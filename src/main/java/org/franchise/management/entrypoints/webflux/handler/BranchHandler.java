@@ -1,0 +1,39 @@
+package org.franchise.management.entrypoints.webflux.handler;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.franchise.management.application.usecase.AddBranchToFranchiseUseCase;
+import org.franchise.management.domain.model.Branch;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Mono;
+
+@Log4j2
+@Component
+@RequiredArgsConstructor
+public class BranchHandler {
+
+    private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+
+    /**
+     * POST /franchises/{franchiseId}/branches
+     * Agrega una nueva sucursal a una franquicia
+     */
+    public Mono<ServerResponse> addBranch(ServerRequest request) {
+        String franchiseId = request.pathVariable("franchiseId");
+
+        return request.bodyToMono(Branch.class)
+                .flatMap(branch -> addBranchToFranchiseUseCase.addBranch(franchiseId, branch))
+                .flatMap(saved -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(saved))
+                .onErrorResume(e -> {
+                    log.error("❌ Error al agregar sucursal: {}", e.getMessage());
+                    return ServerResponse.badRequest()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue("{\"error\": \"" + e.getMessage() + "\"}");
+                });
+    }
+}
