@@ -6,6 +6,7 @@ import lombok.extern.log4j.Log4j2;
 import java.util.Map;
 
 import org.franchise.management.application.usecase.AddBranchToFranchiseUseCase;
+import org.franchise.management.application.usecase.UpdateBranchNameUseCase;
 import org.franchise.management.domain.model.Branch;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ import reactor.core.publisher.Mono;
 public class BranchHandler {
 
     private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+    private final UpdateBranchNameUseCase updateBranchNameUseCase;
 
     /**
      * POST /franchises/{franchiseId}/branches
@@ -43,6 +45,26 @@ public class BranchHandler {
                     return ServerResponse.badRequest()
                             .contentType(MediaType.APPLICATION_JSON)
                             .bodyValue(Map.of("error", e.getMessage()));
+                });
+    }
+
+    /**
+     * PUT /branches/{branchId}/name
+     * Actualiza el nombre de una sucursal
+     */
+    public Mono<ServerResponse> updateBranchName(ServerRequest request) {
+        String branchId = request.pathVariable("branchId");
+
+        return request.bodyToMono(Branch.class)
+                .flatMap(body -> updateBranchNameUseCase.updateBranchName(branchId, body.getName()))
+                .flatMap(updated -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(updated))
+                .onErrorResume(e -> {
+                    log.error("❌ Error al actualizar nombre de sucursal: {}", e.getMessage());
+                    return ServerResponse.badRequest()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue("{\"error\": \"" + e.getMessage() + "\"}");
                 });
     }
 

@@ -1,7 +1,9 @@
 package org.franchise.management.entrypoints.webflux.handler;
 
 import org.franchise.management.application.usecase.AddBranchToFranchiseUseCase;
+import org.franchise.management.application.usecase.UpdateBranchNameUseCase;
 import org.franchise.management.domain.model.Branch;
+import org.franchise.management.domain.repository.BranchRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -25,261 +27,325 @@ import static org.mockito.Mockito.*;
 @DisplayName("BranchHandler Tests")
 class BranchHandlerTest {
 
-    @Mock
-    private AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+        @Mock
+        private BranchRepository branchRepository;
 
-    @Mock
-    private ServerRequest serverRequest;
+        @Mock
+        private AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
 
-    @InjectMocks
-    private BranchHandler branchHandler;
+        @Mock
+        private UpdateBranchNameUseCase updateBranchNameUseCase;
 
-    private Branch branch;
-    private String franchiseId;
+        @Mock
+        private ServerRequest serverRequest;
 
-    @BeforeEach
-    void setUp() {
-        franchiseId = "franchise123";
-        branch = Branch.builder()
-                .name("Sucursal Centro")
-                .build();
-    }
+        @InjectMocks
+        private BranchHandler branchHandler;
 
-    @Test
-    @DisplayName("Should add branch successfully")
-    void shouldAddBranchSuccessfully() {
+        private Branch branch;
+        private String franchiseId;
 
-        Branch savedBranch = Branch.builder()
-                .id("branch456")
-                .name("Sucursal Centro")
-                .franchiseId(franchiseId)
-                .build();
+        @BeforeEach
+        void setUp() {
+                franchiseId = "franchise123";
+                branch = Branch.builder()
+                                .name("Sucursal Centro")
+                                .build();
+        }
 
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
+        @Test
+        @DisplayName("Should add branch successfully")
+        void shouldAddBranchSuccessfully() {
 
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+                Branch savedBranch = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .franchiseId(franchiseId)
+                                .build();
 
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
 
-        verify(addBranchToFranchiseUseCase, times(1))
-                .addBranch(eq(franchiseId), any(Branch.class));
-    }
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
-    @Test
-    @DisplayName("Should return bad request when use case fails")
-    void shouldReturnBadRequestWhenUseCaseFails() {
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                                .verifyComplete();
 
-        IllegalArgumentException exception = new IllegalArgumentException("Franquicia no encontrada");
+                verify(addBranchToFranchiseUseCase, times(1))
+                                .addBranch(eq(franchiseId), any(Branch.class));
+        }
 
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.error(exception));
+        @Test
+        @DisplayName("Should return bad request when use case fails")
+        void shouldReturnBadRequestWhenUseCaseFails() {
 
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+                IllegalArgumentException exception = new IllegalArgumentException("Franquicia no encontrada");
 
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
-                .verifyComplete();
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.error(exception));
 
-        verify(addBranchToFranchiseUseCase, times(1))
-                .addBranch(eq(franchiseId), any(Branch.class));
-    }
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
-    @Test
-    @DisplayName("Should handle invalid branch data")
-    void shouldHandleInvalidBranchData() {
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
 
-        IllegalArgumentException validationError = new IllegalArgumentException("Branch name is required");
+                verify(addBranchToFranchiseUseCase, times(1))
+                                .addBranch(eq(franchiseId), any(Branch.class));
+        }
 
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.error(validationError));
+        @Test
+        @DisplayName("Should handle invalid branch data")
+        void shouldHandleInvalidBranchData() {
 
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+                IllegalArgumentException validationError = new IllegalArgumentException("Branch name is required");
 
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
-                .verifyComplete();
-    }
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.error(validationError));
 
-    @Test
-    @DisplayName("Should handle empty request body")
-    void shouldHandleEmptyRequestBody() {
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.empty());
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+        }
 
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+        @Test
+        @DisplayName("Should handle empty request body")
+        void shouldHandleEmptyRequestBody() {
 
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
-                .verifyComplete();
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.empty());
 
-        verify(addBranchToFranchiseUseCase, never()).addBranch(any(), any());
-    }
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
-    @Test
-    @DisplayName("Should extract franchise ID from path variable")
-    void shouldExtractFranchiseIdFromPath() {
-
-        String customFranchiseId = "franchise999";
-        Branch savedBranch = Branch.builder()
-                .id("branch111")
-                .name("Sucursal Norte")
-                .franchiseId(customFranchiseId)
-                .build();
-
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(customFranchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(customFranchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
-
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
-
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
-
-        verify(serverRequest, times(1)).pathVariable("franchiseId");
-        verify(addBranchToFranchiseUseCase).addBranch(eq(customFranchiseId), any(Branch.class));
-    }
-
-    @Test
-    @DisplayName("Should handle runtime exception from use case")
-    void shouldHandleRuntimeException() {
-
-        RuntimeException runtimeException = new RuntimeException("Database connection error");
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
 
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.error(runtimeException));
+                verify(addBranchToFranchiseUseCase, never()).addBranch(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should extract franchise ID from path variable")
+        void shouldExtractFranchiseIdFromPath() {
+
+                String customFranchiseId = "franchise999";
+                Branch savedBranch = Branch.builder()
+                                .id("branch111")
+                                .name("Sucursal Norte")
+                                .franchiseId(customFranchiseId)
+                                .build();
 
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
-
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should return JSON content type on success")
-    void shouldReturnJsonContentTypeOnSuccess() {
-
-        Branch savedBranch = Branch.builder()
-                .id("branch456")
-                .name("Sucursal Centro")
-                .franchiseId(franchiseId)
-                .build();
-
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
-
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
-
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should return JSON content type on error")
-    void shouldReturnJsonContentTypeOnError() {
-
-        IllegalArgumentException exception = new IllegalArgumentException("Error message");
-
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.error(exception));
-
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
-
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should handle multiple branches for same franchise")
-    void shouldHandleMultipleBranchesForSameFranchise() {
-
-        Branch firstBranch = Branch.builder()
-                .name("Sucursal 1")
-                .build();
-
-        Branch secondBranch = Branch.builder()
-                .name("Sucursal 2")
-                .build();
-
-        Branch savedFirstBranch = Branch.builder()
-                .id("branch1")
-                .name("Sucursal 1")
-                .franchiseId(franchiseId)
-                .build();
-
-        Branch savedSecondBranch = Branch.builder()
-                .id("branch2")
-                .name("Sucursal 2")
-                .franchiseId(franchiseId)
-                .build();
-
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(firstBranch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedFirstBranch));
-
-        Mono<ServerResponse> firstResponse = branchHandler.addBranch(serverRequest);
-
-        StepVerifier.create(firstResponse)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
-
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(secondBranch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedSecondBranch));
-
-        Mono<ServerResponse> secondResponse = branchHandler.addBranch(serverRequest);
-
-        StepVerifier.create(secondResponse)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
-    }
-
-    @Test
-    @DisplayName("Should handle branch with long name")
-    void shouldHandleBranchWithLongName() {
-
-        String longName = "Sucursal Centro Comercial Principal Ubicada en la Zona Norte de la Ciudad";
-        Branch longNameBranch = Branch.builder()
-                .name(longName)
-                .build();
-
-        Branch savedBranch = Branch.builder()
-                .id("branch789")
-                .name(longName)
-                .franchiseId(franchiseId)
-                .build();
-
-        when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-        when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(longNameBranch));
-        when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
-
-        Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
-
-        StepVerifier.create(response)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
-    }
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(customFranchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(customFranchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                                .verifyComplete();
+
+                verify(serverRequest, times(1)).pathVariable("franchiseId");
+                verify(addBranchToFranchiseUseCase).addBranch(eq(customFranchiseId), any(Branch.class));
+        }
+
+        @Test
+        @DisplayName("Should handle runtime exception from use case")
+        void shouldHandleRuntimeException() {
+
+                RuntimeException runtimeException = new RuntimeException("Database connection error");
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.error(runtimeException));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+        }
+
+        @Test
+        @DisplayName("Should return JSON content type on success")
+        void shouldReturnJsonContentTypeOnSuccess() {
+
+                Branch savedBranch = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .franchiseId(franchiseId)
+                                .build();
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                                .verifyComplete();
+        }
+
+        @Test
+        @DisplayName("Should return JSON content type on error")
+        void shouldReturnJsonContentTypeOnError() {
+
+                IllegalArgumentException exception = new IllegalArgumentException("Error message");
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.error(exception));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+        }
+
+        @Test
+        @DisplayName("Should handle multiple branches for same franchise")
+        void shouldHandleMultipleBranchesForSameFranchise() {
+
+                Branch firstBranch = Branch.builder()
+                                .name("Sucursal 1")
+                                .build();
+
+                Branch secondBranch = Branch.builder()
+                                .name("Sucursal 2")
+                                .build();
+
+                Branch savedFirstBranch = Branch.builder()
+                                .id("branch1")
+                                .name("Sucursal 1")
+                                .franchiseId(franchiseId)
+                                .build();
+
+                Branch savedSecondBranch = Branch.builder()
+                                .id("branch2")
+                                .name("Sucursal 2")
+                                .franchiseId(franchiseId)
+                                .build();
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(firstBranch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedFirstBranch));
+
+                Mono<ServerResponse> firstResponse = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(firstResponse)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                                .verifyComplete();
+
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(secondBranch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedSecondBranch));
+
+                Mono<ServerResponse> secondResponse = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(secondResponse)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                                .verifyComplete();
+        }
+
+        @Test
+        @DisplayName("Should handle branch with long name")
+        void shouldHandleBranchWithLongName() {
+
+                String longName = "Sucursal Centro Comercial Principal Ubicada en la Zona Norte de la Ciudad";
+                Branch longNameBranch = Branch.builder()
+                                .name(longName)
+                                .build();
+
+                Branch savedBranch = Branch.builder()
+                                .id("branch789")
+                                .name(longName)
+                                .franchiseId(franchiseId)
+                                .build();
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(longNameBranch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                                .verifyComplete();
+        }
+
+        @Test
+        @DisplayName("✅ Should update branch name successfully")
+        void shouldUpdateBranchNameSuccessfully() {
+                updateBranchNameUseCase = new UpdateBranchNameUseCase(branchRepository);
+                String branchId = "branch123";
+                String newName = "Sucursal Actualizada";
+
+                Branch updatedBranch = Branch.builder()
+                                .id(branchId)
+                                .name(newName)
+                                .franchiseId("franchise123")
+                                .build();
+
+                when(branchRepository.updateBranchName(branchId, newName)).thenReturn(Mono.just(updatedBranch));
+
+                StepVerifier.create(updateBranchNameUseCase.updateBranchName(branchId, newName))
+                                .expectNextMatches(branch -> branch.getName().equals(newName))
+                                .verifyComplete();
+
+                verify(branchRepository).updateBranchName(branchId, newName);
+        }
+
+        @Test
+        @DisplayName("❌ Should return error when branch not found")
+        void shouldReturnErrorWhenBranchNotFound() {
+                updateBranchNameUseCase = new UpdateBranchNameUseCase(branchRepository);
+                String branchId = "branch404";
+                String newName = "Sucursal Nueva";
+
+                when(branchRepository.updateBranchName(branchId, newName)).thenReturn(Mono.empty());
+
+                StepVerifier.create(updateBranchNameUseCase.updateBranchName(branchId, newName))
+                                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
+                                                e.getMessage().equals("Sucursal no encontrada"))
+                                .verify();
+
+                verify(branchRepository).updateBranchName(branchId, newName);
+        }
+
+        @Test
+        @DisplayName("❌ Should handle unexpected exception when updating branch name")
+        void shouldHandleUnexpectedException() {
+                updateBranchNameUseCase = new UpdateBranchNameUseCase(branchRepository);
+                String branchId = "branch500";
+                String newName = "Sucursal Nueva";
+
+                when(branchRepository.updateBranchName(branchId, newName))
+                                .thenReturn(Mono.error(new RuntimeException("Database error")));
+
+                StepVerifier.create(updateBranchNameUseCase.updateBranchName(branchId, newName))
+                                .expectErrorMatches(e -> e instanceof RuntimeException &&
+                                                e.getMessage().equals("Database error"))
+                                .verify();
+
+                verify(branchRepository).updateBranchName(branchId, newName);
+        }
+
 }
