@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -24,198 +23,187 @@ import static org.mockito.Mockito.*;
 @DisplayName("AddBranchToFranchiseUseCase Tests")
 class AddBranchToFranchiseUseCaseTest {
 
-    @Mock
-    private BranchRepository branchRepository;
+        @Mock
+        private BranchRepository branchRepository;
 
-    @InjectMocks
-    private AddBranchToFranchiseUseCase useCase;
+        @InjectMocks
+        private AddBranchToFranchiseUseCase useCase;
 
-    private Branch branch;
-    private String franchiseId;
+        private Branch branch;
+        private String franchiseId;
 
-    @BeforeEach
-    void setUp() {
-        franchiseId = "franchise123";
-        branch = Branch.builder()
-                .id("branch456")
-                .name("Sucursal Centro")
-                .build();
-    }
+        @BeforeEach
+        void setUp() {
+                franchiseId = "franchise123";
+                branch = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .build();
+        }
 
-    @Test
-    @DisplayName("Should add branch to franchise successfully")
-    void shouldAddBranchToFranchiseSuccessfully() {
-        // Given
-        Branch savedBranch = Branch.builder()
-                .id("branch456")
-                .name("Sucursal Centro")
-                .franchiseId(franchiseId)
-                .build();
+        @Test
+        @DisplayName("Should add branch to franchise successfully")
+        void shouldAddBranchToFranchiseSuccessfully() {
 
-        when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
+                Branch savedBranch = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .franchiseId(franchiseId)
+                                .build();
 
-        // When & Then
-        StepVerifier.create(useCase.addBranch(franchiseId, branch))
-                .expectNextMatches(b -> b.getId().equals("branch456") &&
-                        b.getName().equals("Sucursal Centro") &&
-                        b.getFranchiseId().equals(franchiseId))
-                .verifyComplete();
+                when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
 
-        // Verify interactions
-        verify(branchRepository, times(1))
-                .addBranchToFranchise(eq(franchiseId), any(Branch.class));
-    }
+                StepVerifier.create(useCase.addBranch(franchiseId, branch))
+                                .expectNextMatches(b -> b.getId().equals("branch456") &&
+                                                b.getName().equals("Sucursal Centro") &&
+                                                b.getFranchiseId().equals(franchiseId))
+                                .verifyComplete();
 
-    @Test
-    @DisplayName("Should set franchise ID before saving")
-    void shouldSetFranchiseIdBeforeSaving() {
-        // Given
-        Branch branchWithoutFranchiseId = Branch.builder()
-                .id("branch456")
-                .name("Sucursal Centro")
-                .build();
+                // Verify interactions
+                verify(branchRepository, times(1))
+                                .addBranchToFranchise(eq(franchiseId), any(Branch.class));
+        }
 
-        Branch savedBranch = Branch.builder()
-                .id("branch456")
-                .name("Sucursal Centro")
-                .franchiseId(franchiseId)
-                .build();
+        @Test
+        @DisplayName("Should set franchise ID before saving")
+        void shouldSetFranchiseIdBeforeSaving() {
 
-        when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
+                Branch branchWithoutFranchiseId = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .build();
 
-        // When
-        StepVerifier.create(useCase.addBranch(franchiseId, branchWithoutFranchiseId))
-                .expectNextMatches(b -> b.getFranchiseId().equals(franchiseId))
-                .verifyComplete();
+                Branch savedBranch = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .franchiseId(franchiseId)
+                                .build();
 
-        // Then - verify that franchiseId was set on the branch object
-        assert branchWithoutFranchiseId.getFranchiseId().equals(franchiseId);
-    }
+                when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
 
-    @Test
-    @DisplayName("Should return error when franchise not found")
-    void shouldReturnErrorWhenFranchiseNotFound() {
-        // Given
-        when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.empty());
+                StepVerifier.create(useCase.addBranch(franchiseId, branchWithoutFranchiseId))
+                                .expectNextMatches(b -> b.getFranchiseId().equals(franchiseId))
+                                .verifyComplete();
 
-        // When & Then
-        StepVerifier.create(useCase.addBranch(franchiseId, branch))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("Franquicia no encontrada."))
-                .verify();
+                assert branchWithoutFranchiseId.getFranchiseId().equals(franchiseId);
+        }
 
-        verify(branchRepository, times(1))
-                .addBranchToFranchise(eq(franchiseId), any(Branch.class));
-    }
+        @Test
+        @DisplayName("Should return error when franchise not found")
+        void shouldReturnErrorWhenFranchiseNotFound() {
 
-    @Test
-    @DisplayName("Should handle repository error")
-    void shouldHandleRepositoryError() {
-        // Given
-        RuntimeException repositoryError = new RuntimeException("Database connection error");
+                when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.empty());
 
-        when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.error(repositoryError));
+                StepVerifier.create(useCase.addBranch(franchiseId, branch))
+                                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                                                throwable.getMessage().equals("Franquicia no encontrada."))
+                                .verify();
 
-        // When & Then
-        StepVerifier.create(useCase.addBranch(franchiseId, branch))
-                .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
-                        throwable.getMessage().equals("Database connection error"))
-                .verify();
+                verify(branchRepository, times(1))
+                                .addBranchToFranchise(eq(franchiseId), any(Branch.class));
+        }
 
-        verify(branchRepository, times(1))
-                .addBranchToFranchise(eq(franchiseId), any(Branch.class));
-    }
+        @Test
+        @DisplayName("Should handle repository error")
+        void shouldHandleRepositoryError() {
 
-    @Test
-    @DisplayName("Should handle null franchise ID")
-    void shouldHandleNullFranchiseId() {
-        // Given
-        when(branchRepository.addBranchToFranchise(eq(null), any(Branch.class)))
-                .thenReturn(Mono.error(new IllegalArgumentException("Franchise ID cannot be null")));
+                RuntimeException repositoryError = new RuntimeException("Database connection error");
 
-        // When & Then
-        StepVerifier.create(useCase.addBranch(null, branch))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().contains("Franchise ID cannot be null"))
-                .verify();
-    }
+                when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.error(repositoryError));
 
-    @Test
-    @DisplayName("Should propagate IllegalArgumentException from repository")
-    void shouldPropagateIllegalArgumentException() {
-        // Given
-        IllegalArgumentException exception = new IllegalArgumentException("Invalid branch data");
+                StepVerifier.create(useCase.addBranch(franchiseId, branch))
+                                .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
+                                                throwable.getMessage().equals("Database connection error"))
+                                .verify();
 
-        when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.error(exception));
+                verify(branchRepository, times(1))
+                                .addBranchToFranchise(eq(franchiseId), any(Branch.class));
+        }
 
-        // When & Then
-        StepVerifier.create(useCase.addBranch(franchiseId, branch))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                        throwable.getMessage().equals("Invalid branch data"))
-                .verify();
-    }
+        @Test
+        @DisplayName("Should handle null franchise ID")
+        void shouldHandleNullFranchiseId() {
 
-    @Test
-    @DisplayName("Should handle empty franchise ID")
-    void shouldHandleEmptyFranchiseId() {
-        // Given
-        when(branchRepository.addBranchToFranchise(eq(""), any(Branch.class)))
-                .thenReturn(Mono.error(new IllegalArgumentException("Franchise ID cannot be empty")));
+                when(branchRepository.addBranchToFranchise(eq(null), any(Branch.class)))
+                                .thenReturn(Mono.error(new IllegalArgumentException("Franchise ID cannot be null")));
 
-        // When & Then
-        StepVerifier.create(useCase.addBranch("", branch))
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException)
-                .verify();
-    }
+                StepVerifier.create(useCase.addBranch(null, branch))
+                                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                                                throwable.getMessage().contains("Franchise ID cannot be null"))
+                                .verify();
+        }
 
-    @Test
-    @DisplayName("Should log success when branch is added")
-    void shouldLogSuccessWhenBranchIsAdded() {
-        // Given
-        Branch savedBranch = Branch.builder()
-                .id("branch456")
-                .name("Sucursal Centro")
-                .franchiseId(franchiseId)
-                .build();
+        @Test
+        @DisplayName("Should propagate IllegalArgumentException from repository")
+        void shouldPropagateIllegalArgumentException() {
 
-        when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
+                IllegalArgumentException exception = new IllegalArgumentException("Invalid branch data");
 
-        // When
-        StepVerifier.create(useCase.addBranch(franchiseId, branch))
-                .expectNextCount(1)
-                .verifyComplete();
+                when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.error(exception));
 
-        // Then - verify repository was called
-        verify(branchRepository).addBranchToFranchise(eq(franchiseId), any(Branch.class));
-    }
+                StepVerifier.create(useCase.addBranch(franchiseId, branch))
+                                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
+                                                throwable.getMessage().equals("Invalid branch data"))
+                                .verify();
+        }
 
-    @Test
-    @DisplayName("Should maintain branch name after adding")
-    void shouldMaintainBranchNameAfterAdding() {
-        // Given
-        String expectedName = "Sucursal Norte";
-        Branch branchWithName = Branch.builder()
-                .name(expectedName)
-                .build();
+        @Test
+        @DisplayName("Should handle empty franchise ID")
+        void shouldHandleEmptyFranchiseId() {
 
-        Branch savedBranch = Branch.builder()
-                .id("branch789")
-                .name(expectedName)
-                .franchiseId(franchiseId)
-                .build();
+                when(branchRepository.addBranchToFranchise(eq(""), any(Branch.class)))
+                                .thenReturn(Mono.error(new IllegalArgumentException("Franchise ID cannot be empty")));
 
-        when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
-                .thenReturn(Mono.just(savedBranch));
+                StepVerifier.create(useCase.addBranch("", branch))
+                                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException)
+                                .verify();
+        }
 
-        // When & Then
-        StepVerifier.create(useCase.addBranch(franchiseId, branchWithName))
-                .expectNextMatches(b -> b.getName().equals(expectedName))
-                .verifyComplete();
-    }
+        @Test
+        @DisplayName("Should log success when branch is added")
+        void shouldLogSuccessWhenBranchIsAdded() {
+
+                Branch savedBranch = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .franchiseId(franchiseId)
+                                .build();
+
+                when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
+
+                StepVerifier.create(useCase.addBranch(franchiseId, branch))
+                                .expectNextCount(1)
+                                .verifyComplete();
+
+                verify(branchRepository).addBranchToFranchise(eq(franchiseId), any(Branch.class));
+        }
+
+        @Test
+        @DisplayName("Should maintain branch name after adding")
+        void shouldMaintainBranchNameAfterAdding() {
+
+                String expectedName = "Sucursal Norte";
+                Branch branchWithName = Branch.builder()
+                                .name(expectedName)
+                                .build();
+
+                Branch savedBranch = Branch.builder()
+                                .id("branch789")
+                                .name(expectedName)
+                                .franchiseId(franchiseId)
+                                .build();
+
+                when(branchRepository.addBranchToFranchise(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
+
+                StepVerifier.create(useCase.addBranch(franchiseId, branchWithName))
+                                .expectNextMatches(b -> b.getName().equals(expectedName))
+                                .verifyComplete();
+        }
 }

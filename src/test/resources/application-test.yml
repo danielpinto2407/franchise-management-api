@@ -2,7 +2,6 @@ spring:
   data:
     mongodb:
       database: test-franchises
-      # MongoDB embedded se configurará automáticamente
   
 logging:
   level:

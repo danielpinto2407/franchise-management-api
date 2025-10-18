@@ -16,7 +16,7 @@ public class AddBranchToFranchiseUseCase {
     private final BranchRepository branchRepository;
 
     public Mono<Branch> addBranch(String franchiseId, Branch branch) {
-        branch.setFranchiseId(franchiseId); // 👈 Aseguramos que se asigne el ID de la franquicia
+        branch.setFranchiseId(franchiseId);
         return branchRepository.addBranchToFranchise(franchiseId, branch)
                 .doOnNext(b -> log.info("✅ Sucursal agregada a franquicia {}: {}", franchiseId, b.getName()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Franquicia no encontrada.")))

@@ -20,15 +20,19 @@ public class BranchMongoAdapter implements BranchRepository {
 
     @Override
     public Mono<Branch> addBranchToFranchise(String franchiseId, Branch branch) {
-        log.info("🏬 Agregando sucursal '{}' a la franquicia '{}'", branch.getName(), franchiseId);
-
-        return branchMongoRepository.save(branch)
-                .flatMap(savedBranch -> franchiseMongoRepository.findById(franchiseId)
-                        .flatMap(franchise -> {
-                            franchise.addBranch(savedBranch.getId());
-                            return franchiseMongoRepository.save(franchise)
-                                    .thenReturn(savedBranch);
-                        }));
+        return franchiseMongoRepository.findById(franchiseId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Franquicia no encontrada")))
+                .flatMap(franchise -> {
+                    branch.setFranchiseId(franchiseId);
+                    return branchMongoRepository.save(branch)
+                            .flatMap(savedBranch -> {
+                                franchise.addBranch(savedBranch.getId());
+                                log.info("🏬 Agregando sucursal '{}' a la franquicia '{}'", branch.getName(),
+                                        franchiseId);
+                                return franchiseMongoRepository.save(franchise)
+                                        .thenReturn(savedBranch);
+                            });
+                });
     }
 
     @Override
