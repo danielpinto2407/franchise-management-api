@@ -18,4 +18,6 @@ public interface ProductRepository {
 
     Flux<Product> findMaxStockProductByBranch(String franchiseId);
 
+    Mono<Product> updateProductName(String productId, String newName);
+
 }

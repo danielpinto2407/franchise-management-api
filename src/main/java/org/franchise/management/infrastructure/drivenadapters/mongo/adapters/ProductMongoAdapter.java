@@ -63,4 +63,16 @@ public class ProductMongoAdapter implements ProductRepository {
                         .next())
                 .doOnComplete(() -> log.info("✅ Consulta de productos con mayor stock completada"));
     }
+
+    @Override
+    public Mono<Product> updateProductName(String productId, String newName) {
+        return productMongoRepository.findById(productId)
+                .flatMap(product -> {
+                    product.updateName(newName);
+                    return productMongoRepository.save(product);
+                })
+                .doOnNext(p -> log.info("✏️ Nombre de producto actualizado: {} → {}", productId, newName))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado")));
+    }
+
 }

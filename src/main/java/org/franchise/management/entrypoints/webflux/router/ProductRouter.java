@@ -12,14 +12,16 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 @Configuration
 public class ProductRouter {
 
-    @Bean
-    public RouterFunction<ServerResponse> productRoutes(ProductHandler handler) {
-        return RouterFunctions
-                .route(POST("/franchises/{franchiseId}/branches/{branchId}/products"), handler::addProduct)
-                .andRoute(DELETE("/franchises/{franchiseId}/branches/{branchId}/products/{productId}"),
-                        handler::deleteProduct)
-                .andRoute(PUT("/franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock"),
-                        handler::updateStock)
-                .andRoute(GET("/franchises/{franchiseId}/max-stock"), handler::getMaxStockProducts);
-    }
+        @Bean
+        public RouterFunction<ServerResponse> productRoutes(ProductHandler handler) {
+                return RouterFunctions
+                                .route(POST("/franchises/{franchiseId}/branches/{branchId}/products"),
+                                                handler::addProduct)
+                                .andRoute(DELETE("/franchises/{franchiseId}/branches/{branchId}/products/{productId}"),
+                                                handler::deleteProduct)
+                                .andRoute(PUT("/franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock"),
+                                                handler::updateStock)
+                                .andRoute(GET("/franchises/{franchiseId}/max-stock"), handler::getMaxStockProducts)
+                                .andRoute(PUT("/products/{productId}/name"), handler::updateProductName);
+        }
 }

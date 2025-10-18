@@ -2,6 +2,9 @@ package org.franchise.management.entrypoints.webflux.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
+import java.util.Map;
+
 import org.franchise.management.application.usecase.*;
 import org.franchise.management.domain.model.Product;
 import org.springframework.http.MediaType;
@@ -17,6 +20,7 @@ import reactor.core.publisher.Mono;
 public class ProductHandler {
 
         private final AddProductToBranchUseCase addProductToBranchUseCase;
+        private final UpdateProductNameUseCase updateProductNameUseCase;
         private final DeleteProductFromBranchUseCase deleteProductFromBranchUseCase;
         private final UpdateProductStockUseCase updateProductStockUseCase;
         private final GetMaxStockProductByBranchUseCase findMaxStockProductByFranchiseUseCase;
@@ -92,4 +96,32 @@ public class ProductHandler {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .bodyValue("{\"error\": \"" + e.getMessage() + "\"}");
         }
+
+        public Mono<ServerResponse> updateProductName(ServerRequest request) {
+                String productId = request.pathVariable("productId");
+
+                return request.bodyToMono(Product.class)
+                                .flatMap(body -> {
+                                        if (body.getName() == null || body.getName().isBlank()) {
+                                                return ServerResponse.badRequest()
+                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                .bodyValue(Map.of("error",
+                                                                                "El nombre del producto es requerido"));
+                                        }
+                                        return updateProductNameUseCase.updateProductName(productId, body.getName())
+                                                        .flatMap(updated -> ServerResponse.ok()
+                                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                                        .bodyValue(updated));
+                                })
+                                .switchIfEmpty(ServerResponse.badRequest()
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .bodyValue(Map.of("error", "El cuerpo de la solicitud está vacío")))
+                                .onErrorResume(e -> {
+                                        log.error("❌ Error al actualizar nombre de producto: {}", e.getMessage());
+                                        return ServerResponse.badRequest()
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .bodyValue(Map.of("error", e.getMessage()));
+                                });
+        }
+
 }
