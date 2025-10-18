@@ -29,12 +29,15 @@ public class FranchiseHandler {
                             .contentType(MediaType.APPLICATION_JSON)
                             .bodyValue(savedFranchise);
                 })
+                .switchIfEmpty(ServerResponse.badRequest()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue("{\"error\": \"El cuerpo de la solicitud está vacío\"}"))
                 .onErrorResume(e -> {
                     log.error("❌ Error al crear franquicia: {}", e.getMessage());
                     return ServerResponse.badRequest()
                             .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(
-                                    String.format("{\"error\": \"%s\"}", e.getMessage()));
+                            .bodyValue(String.format("{\"error\": \"%s\"}", e.getMessage()));
                 });
     }
+
 }

@@ -16,78 +16,80 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ProductHandler {
 
-    private final AddProductToBranchUseCase addProductToBranchUseCase;
-    private final DeleteProductFromBranchUseCase deleteProductFromBranchUseCase;
-    private final UpdateProductStockUseCase updateProductStockUseCase;
-    private final GetMaxStockProductByBranchUseCase findMaxStockProductByFranchiseUseCase;
+        private final AddProductToBranchUseCase addProductToBranchUseCase;
+        private final DeleteProductFromBranchUseCase deleteProductFromBranchUseCase;
+        private final UpdateProductStockUseCase updateProductStockUseCase;
+        private final GetMaxStockProductByBranchUseCase findMaxStockProductByFranchiseUseCase;
 
-    /**
-     * POST /franchises/{franchiseId}/branches/{branchId}/products
-     * Agrega un nuevo producto a una sucursal
-     */
-    public Mono<ServerResponse> addProduct(ServerRequest request) {
-        String franchiseId = request.pathVariable("franchiseId");
-        String branchId = request.pathVariable("branchId");
+        /**
+         * POST /franchises/{franchiseId}/branches/{branchId}/products
+         * Agrega un nuevo producto a una sucursal
+         */
+        public Mono<ServerResponse> addProduct(ServerRequest request) {
+                String franchiseId = request.pathVariable("franchiseId");
+                String branchId = request.pathVariable("branchId");
 
-        return request.bodyToMono(Product.class)
-                .flatMap(product -> addProductToBranchUseCase.addProduct(franchiseId, branchId, product))
-                .flatMap(saved -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(saved))
-                .onErrorResume(e -> handleError("agregar producto", e));
-    }
+                return request.bodyToMono(Product.class)
+                                .flatMap(product -> addProductToBranchUseCase.addProduct(franchiseId, branchId,
+                                                product))
+                                .flatMap(saved -> ServerResponse.ok()
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .bodyValue(saved))
+                                .onErrorResume(e -> handleError("agregar producto", e))
+                                .switchIfEmpty(ServerResponse.badRequest().bodyValue("Request body is empty"));
+        }
 
-    /**
-     * DELETE /franchises/{franchiseId}/branches/{branchId}/products/{productId}
-     * Elimina un producto de una sucursal
-     */
-    public Mono<ServerResponse> deleteProduct(ServerRequest request) {
-        String franchiseId = request.pathVariable("franchiseId");
-        String branchId = request.pathVariable("branchId");
-        String productId = request.pathVariable("productId");
+        /**
+         * DELETE /franchises/{franchiseId}/branches/{branchId}/products/{productId}
+         * Elimina un producto de una sucursal
+         */
+        public Mono<ServerResponse> deleteProduct(ServerRequest request) {
+                String franchiseId = request.pathVariable("franchiseId");
+                String branchId = request.pathVariable("branchId");
+                String productId = request.pathVariable("productId");
 
-        return deleteProductFromBranchUseCase.deleteProduct(franchiseId, branchId, productId)
-                .then(ServerResponse.noContent().build())
-                .onErrorResume(e -> handleError("eliminar producto", e));
-    }
+                return deleteProductFromBranchUseCase.deleteProduct(franchiseId, branchId, productId)
+                                .then(ServerResponse.noContent().build())
+                                .onErrorResume(e -> handleError("eliminar producto", e));
+        }
 
-    /**
-     * PUT /franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock
-     * Modifica el stock de un producto
-     */
-    public Mono<ServerResponse> updateStock(ServerRequest request) {
-        String franchiseId = request.pathVariable("franchiseId");
-        String branchId = request.pathVariable("branchId");
-        String productId = request.pathVariable("productId");
+        /**
+         * PUT /franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock
+         * Modifica el stock de un producto
+         */
+        public Mono<ServerResponse> updateStock(ServerRequest request) {
+                String franchiseId = request.pathVariable("franchiseId");
+                String branchId = request.pathVariable("branchId");
+                String productId = request.pathVariable("productId");
 
-        return request.bodyToMono(Product.class)
-                .flatMap(body -> updateProductStockUseCase.updateStock(franchiseId, branchId, productId,
-                        body.getStock()))
-                .flatMap(updated -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(updated))
-                .onErrorResume(e -> handleError("actualizar stock", e));
-    }
+                return request.bodyToMono(Product.class)
+                                .flatMap(body -> updateProductStockUseCase.updateStock(franchiseId, branchId, productId,
+                                                body.getStock()))
+                                .flatMap(updated -> ServerResponse.ok()
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .bodyValue(updated))
+                                .onErrorResume(e -> handleError("actualizar stock", e));
+        }
 
-    /**
-     * GET /franchises/{franchiseId}/max-stock
-     * Muestra el producto con más stock por sucursal
-     */
-    public Mono<ServerResponse> getMaxStockProducts(ServerRequest request) {
-        String franchiseId = request.pathVariable("franchiseId");
+        /**
+         * GET /franchises/{franchiseId}/max-stock
+         * Muestra el producto con más stock por sucursal
+         */
+        public Mono<ServerResponse> getMaxStockProducts(ServerRequest request) {
+                String franchiseId = request.pathVariable("franchiseId");
 
-        Flux<Product> products = findMaxStockProductByFranchiseUseCase.getMaxStockProducts(franchiseId);
+                return findMaxStockProductByFranchiseUseCase.getMaxStockProducts(franchiseId)
+                                .collectList()
+                                .flatMap(products -> ServerResponse.ok()
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .bodyValue(products))
+                                .onErrorResume(e -> handleError("obtener productos con mayor stock", e));
+        }
 
-        return ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(products, Product.class)
-                .onErrorResume(e -> handleError("obtener productos con mayor stock", e));
-    }
-
-    private Mono<ServerResponse> handleError(String action, Throwable e) {
-        log.error("❌ Error al {}: {}", action, e.getMessage());
-        return ServerResponse.badRequest()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue("{\"error\": \"" + e.getMessage() + "\"}");
-    }
+        private Mono<ServerResponse> handleError(String action, Throwable e) {
+                log.error("❌ Error al {}: {}", action, e.getMessage());
+                return ServerResponse.badRequest()
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue("{\"error\": \"" + e.getMessage() + "\"}");
+        }
 }
