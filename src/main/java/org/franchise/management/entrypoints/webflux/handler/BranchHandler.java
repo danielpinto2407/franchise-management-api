@@ -19,53 +19,65 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class BranchHandler {
 
-    private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
-    private final UpdateBranchNameUseCase updateBranchNameUseCase;
+        private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
+        private final UpdateBranchNameUseCase updateBranchNameUseCase;
 
-    /**
-     * POST /franchises/{franchiseId}/branches
-     * Agrega una nueva sucursal a una franquicia
-     */
-    public Mono<ServerResponse> addBranch(ServerRequest request) {
-        String franchiseId = request.pathVariable("franchiseId");
+        /**
+         * POST /franchises/{franchiseId}/branches
+         * Agrega una nueva sucursal a una franquicia
+         */
+        public Mono<ServerResponse> addBranch(ServerRequest request) {
+                String franchiseId = request.pathVariable("franchiseId");
 
-        return request.bodyToMono(Branch.class)
-                .flatMap(branch -> addBranchToFranchiseUseCase.addBranch(franchiseId, branch))
-                .flatMap(saved -> {
-                    log.info("✅ Sucursal agregada exitosamente a la franquicia {}: {}", franchiseId, saved.getName());
-                    return ServerResponse.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(saved);
-                })
-                .switchIfEmpty(ServerResponse.badRequest()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(Map.of("error", "El cuerpo de la solicitud está vacío")))
-                .onErrorResume(e -> {
-                    log.error("❌ Error al agregar sucursal a la franquicia {}: {}", franchiseId, e.getMessage());
-                    return ServerResponse.badRequest()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(Map.of("error", e.getMessage()));
-                });
-    }
+                return request.bodyToMono(Branch.class)
+                                .flatMap(branch -> addBranchToFranchiseUseCase.addBranch(franchiseId, branch))
+                                .flatMap(saved -> {
+                                        log.info("✅ Sucursal agregada exitosamente a la franquicia {}: {}", franchiseId,
+                                                        saved.getName());
+                                        return ServerResponse.ok()
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .bodyValue(saved);
+                                })
+                                .switchIfEmpty(ServerResponse.badRequest()
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .bodyValue(Map.of("error", "El cuerpo de la solicitud está vacío")))
+                                .onErrorResume(e -> {
+                                        log.error("❌ Error al agregar sucursal a la franquicia {}: {}", franchiseId,
+                                                        e.getMessage());
+                                        return ServerResponse.badRequest()
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .bodyValue(Map.of("error", e.getMessage()));
+                                });
+        }
 
-    /**
-     * PUT /branches/{branchId}/name
-     * Actualiza el nombre de una sucursal
-     */
-    public Mono<ServerResponse> updateBranchName(ServerRequest request) {
-        String branchId = request.pathVariable("branchId");
+        /**
+         * PUT /branches/{branchId}/name
+         * Actualiza el nombre de una sucursal
+         */
+        public Mono<ServerResponse> updateBranchName(ServerRequest request) {
+                String branchId = request.pathVariable("branchId");
 
-        return request.bodyToMono(Branch.class)
-                .flatMap(body -> updateBranchNameUseCase.updateBranchName(branchId, body.getName()))
-                .flatMap(updated -> ServerResponse.ok()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(updated))
-                .onErrorResume(e -> {
-                    log.error("❌ Error al actualizar nombre de sucursal: {}", e.getMessage());
-                    return ServerResponse.badRequest()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue("{\"error\": \"" + e.getMessage() + "\"}");
-                });
-    }
-
+                return request.bodyToMono(Branch.class)
+                                .flatMap(body -> {
+                                        if (body.getName() == null || body.getName().isBlank()) {
+                                                return ServerResponse.badRequest()
+                                                                .contentType(MediaType.APPLICATION_JSON)
+                                                                .bodyValue(Map.of("error",
+                                                                                "El nombre de la sucursal no puede estar vacío"));
+                                        }
+                                        return updateBranchNameUseCase.updateBranchName(branchId, body.getName())
+                                                        .flatMap(updated -> ServerResponse.ok()
+                                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                                        .bodyValue(updated));
+                                })
+                                .switchIfEmpty(ServerResponse.badRequest()
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .bodyValue(Map.of("error", "El cuerpo de la solicitud está vacío")))
+                                .onErrorResume(e -> {
+                                        log.error("❌ Error al actualizar nombre de sucursal: {}", e.getMessage());
+                                        return ServerResponse.badRequest()
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .bodyValue(Map.of("error", e.getMessage()));
+                                });
+        }
 }

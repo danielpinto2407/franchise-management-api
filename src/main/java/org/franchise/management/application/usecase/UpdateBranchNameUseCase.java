@@ -15,11 +15,11 @@ public class UpdateBranchNameUseCase {
     private final BranchRepository branchRepository;
 
     public Mono<Branch> updateBranchName(String branchId, String newName) {
-        log.info("✏️ Actualizando nombre de la sucursal '{}' a '{}'", branchId, newName);
         return branchRepository.updateBranchName(branchId, newName)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Sucursal no encontrada")))
+                .doOnNext(b -> log.info("✅ Sucursal actualizada: {} -> {}", b.getId(), b.getName()))
                 .onErrorResume(e -> {
-                    log.error("❌ Error al actualizar nombre de sucursal: {}", e.getMessage());
+                    log.error("❌ Error actualizando sucursal: {}", e.getMessage());
                     return Mono.error(e);
                 });
     }

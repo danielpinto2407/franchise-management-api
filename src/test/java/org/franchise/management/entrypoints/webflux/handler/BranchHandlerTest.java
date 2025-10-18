@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -294,58 +295,93 @@ class BranchHandlerTest {
         @Test
         @DisplayName("✅ Should update branch name successfully")
         void shouldUpdateBranchNameSuccessfully() {
-                updateBranchNameUseCase = new UpdateBranchNameUseCase(branchRepository);
                 String branchId = "branch123";
-                String newName = "Sucursal Actualizada";
+                Branch branchRequest = Branch.builder().name("Sucursal Actualizada").build();
 
                 Branch updatedBranch = Branch.builder()
                                 .id(branchId)
-                                .name(newName)
+                                .name("Sucursal Actualizada")
                                 .franchiseId("franchise123")
                                 .build();
 
-                when(branchRepository.updateBranchName(branchId, newName)).thenReturn(Mono.just(updatedBranch));
+                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchRequest));
+                when(updateBranchNameUseCase.updateBranchName(branchId, "Sucursal Actualizada"))
+                                .thenReturn(Mono.just(updatedBranch));
 
-                StepVerifier.create(updateBranchNameUseCase.updateBranchName(branchId, newName))
-                                .expectNextMatches(branch -> branch.getName().equals(newName))
+                Mono<ServerResponse> response = branchHandler.updateBranchName(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
                                 .verifyComplete();
 
-                verify(branchRepository).updateBranchName(branchId, newName);
+                verify(updateBranchNameUseCase).updateBranchName(branchId, "Sucursal Actualizada");
+        }
+
+        @Test
+        @DisplayName("⚠️ Should return bad request when body is empty")
+        void shouldReturnBadRequestWhenBodyIsEmpty() {
+                String branchId = "branch123";
+                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.empty());
+
+                Mono<ServerResponse> response = branchHandler.updateBranchName(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+
+                verify(updateBranchNameUseCase, never()).updateBranchName(anyString(), anyString());
+        }
+
+        @Test
+        @DisplayName("⚠️ Should return bad request when branch name is null")
+        void shouldReturnBadRequestWhenBranchNameIsNull() {
+                String branchId = "branch123";
+                branch.setName(null);
+
+                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+
+                Mono<ServerResponse> response = branchHandler.updateBranchName(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+
+                verify(updateBranchNameUseCase, never()).updateBranchName(anyString(), anyString());
         }
 
         @Test
         @DisplayName("❌ Should return error when branch not found")
         void shouldReturnErrorWhenBranchNotFound() {
-                updateBranchNameUseCase = new UpdateBranchNameUseCase(branchRepository);
-                String branchId = "branch404";
-                String newName = "Sucursal Nueva";
+                String branchId = "branch123";
+                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(updateBranchNameUseCase.updateBranchName(branchId, branch.getName()))
+                                .thenReturn(Mono.error(new IllegalArgumentException("Sucursal no encontrada")));
 
-                when(branchRepository.updateBranchName(branchId, newName)).thenReturn(Mono.empty());
+                Mono<ServerResponse> response = branchHandler.updateBranchName(serverRequest);
 
-                StepVerifier.create(updateBranchNameUseCase.updateBranchName(branchId, newName))
-                                .expectErrorMatches(e -> e instanceof IllegalArgumentException &&
-                                                e.getMessage().equals("Sucursal no encontrada"))
-                                .verify();
-
-                verify(branchRepository).updateBranchName(branchId, newName);
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
         }
 
         @Test
-        @DisplayName("❌ Should handle unexpected exception when updating branch name")
-        void shouldHandleUnexpectedException() {
-                updateBranchNameUseCase = new UpdateBranchNameUseCase(branchRepository);
-                String branchId = "branch500";
-                String newName = "Sucursal Nueva";
-
-                when(branchRepository.updateBranchName(branchId, newName))
+        @DisplayName("💥 Should handle unexpected exception when updating branch name")
+        void shouldHandleUnexpectedExceptionWhenUpdatingBranchName() {
+                String branchId = "branch123";
+                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(updateBranchNameUseCase.updateBranchName(branchId, branch.getName()))
                                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
-                StepVerifier.create(updateBranchNameUseCase.updateBranchName(branchId, newName))
-                                .expectErrorMatches(e -> e instanceof RuntimeException &&
-                                                e.getMessage().equals("Database error"))
-                                .verify();
+                Mono<ServerResponse> response = branchHandler.updateBranchName(serverRequest);
 
-                verify(branchRepository).updateBranchName(branchId, newName);
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
         }
 
 }
