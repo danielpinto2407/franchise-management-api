@@ -4,18 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Branch (Sucursal) - Entidad de dominio que representa una sucursal
- * de una franquicia.
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -35,11 +32,11 @@ public class Branch {
     @Builder.Default
     private List<String> productIds = new ArrayList<>();
 
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreatedDate
+    private LocalDateTime createdAt;
 
-    @Builder.Default
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     public void addProduct(String productId) {
         if (productId == null || productId.isBlank()) {
@@ -50,14 +47,12 @@ public class Branch {
         }
         if (!this.productIds.contains(productId)) {
             this.productIds.add(productId);
-            this.updatedAt = LocalDateTime.now();
         }
     }
 
     public void removeProduct(String productId) {
         if (this.productIds != null) {
             this.productIds.remove(productId);
-            this.updatedAt = LocalDateTime.now();
         }
     }
 
@@ -66,6 +61,5 @@ public class Branch {
             throw new IllegalArgumentException("Branch name cannot be empty");
         }
         this.name = newName.trim();
-        this.updatedAt = LocalDateTime.now();
     }
 }

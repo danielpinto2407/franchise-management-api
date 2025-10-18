@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
@@ -23,6 +25,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Document(collection = "franchises")
 public class Franchise {
+
     @Id
     private String id;
 
@@ -32,11 +35,11 @@ public class Franchise {
     @Builder.Default
     private List<String> branchIds = new ArrayList<>();
 
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreatedDate
+    private LocalDateTime createdAt;
 
-    @Builder.Default
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     public void addBranch(String branchId) {
         if (branchId == null || branchId.isBlank()) {
@@ -47,14 +50,12 @@ public class Franchise {
         }
         if (!this.branchIds.contains(branchId)) {
             this.branchIds.add(branchId);
-            this.updatedAt = LocalDateTime.now();
         }
     }
 
     public void removeBranch(String branchId) {
         if (this.branchIds != null) {
             this.branchIds.remove(branchId);
-            this.updatedAt = LocalDateTime.now();
         }
     }
 
@@ -63,7 +64,6 @@ public class Franchise {
             throw new IllegalArgumentException("Franchise name cannot be empty");
         }
         this.name = newName.trim();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public int getTotalBranches() {

@@ -49,12 +49,10 @@ public class ProductHandler {
          * PUT /franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock
          */
         public Mono<ServerResponse> updateStock(ServerRequest request) {
-                String franchiseId = request.pathVariable("franchiseId");
-                String branchId = request.pathVariable("branchId");
                 String productId = request.pathVariable("productId");
 
                 return request.bodyToMono(Product.class)
-                                .flatMap(body -> updateProductStockUseCase.updateStock(franchiseId, branchId, productId,
+                                .flatMap(body -> updateProductStockUseCase.updateStock(productId,
                                                 body.getStock()))
                                 .flatMap(ResponseUtil::ok)
                                 .switchIfEmpty(ResponseUtil.emptyBody())

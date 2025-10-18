@@ -2,6 +2,7 @@ package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.model.Product;
 import org.franchise.management.domain.repository.ProductRepository;
+import org.franchise.management.infrastructure.drivenadapters.mongo.adapters.ProductMongoAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.*;
 class AddProductToBranchUseCaseTest {
 
         @Mock
-        private ProductRepository productRepository;
+        private ProductMongoAdapter productRepository;
 
         @InjectMocks
         private AddProductToBranchUseCase useCase;

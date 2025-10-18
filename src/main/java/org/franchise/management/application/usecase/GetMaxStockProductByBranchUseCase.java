@@ -1,7 +1,7 @@
 package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.model.Product;
-import org.franchise.management.domain.repository.ProductRepository;
+import org.franchise.management.infrastructure.drivenadapters.mongo.adapters.ProductMongoAdapter;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -13,13 +13,13 @@ import reactor.core.publisher.Flux;
 @Log4j2
 public class GetMaxStockProductByBranchUseCase {
 
-    private final ProductRepository productRepository;
+    private final ProductMongoAdapter productRepository;
 
     public Flux<Product> getMaxStockProducts(String franchiseId) {
         return productRepository.findMaxStockProductByBranch(franchiseId)
-                .doOnNext(p -> log.info("📦 Producto con mayor stock: " + p.getName() + " (" + p.getStock() + ")"))
+                .doOnNext(p -> log.info("Producto con mayor stock: " + p.getName() + " (" + p.getStock() + ")"))
                 .onErrorResume(e -> {
-                    log.error("❌ Error al obtener productos con mayor stock: " + e.getMessage());
+                    log.error("Error al obtener productos con mayor stock: " + e.getMessage());
                     return Flux.error(e);
                 });
     }

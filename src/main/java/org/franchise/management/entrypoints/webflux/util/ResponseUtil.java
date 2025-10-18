@@ -35,7 +35,7 @@ public class ResponseUtil {
 
     /** Manejo de errores genérico */
     public static Mono<ServerResponse> handleError(String action, Throwable e) {
-        log.error("❌ Error al {}: {}", action, e.getMessage(), e);
+        log.error("Error al {}: {}", action, e.getMessage(), e);
         return badRequest(e.getMessage());
     }
 }

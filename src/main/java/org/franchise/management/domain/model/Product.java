@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.Min;
@@ -36,18 +38,17 @@ public class Product {
     @NotBlank(message = "Branch ID is required")
     private String branchId;
 
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreatedDate
+    private LocalDateTime createdAt;
 
-    @Builder.Default
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     public void updateStock(Integer newStock) {
         if (newStock < 0) {
             throw new IllegalArgumentException("Stock cannot be negative");
         }
         this.stock = newStock;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateName(String newName) {
@@ -55,6 +56,5 @@ public class Product {
             throw new IllegalArgumentException("Product name cannot be empty");
         }
         this.name = newName.trim();
-        this.updatedAt = LocalDateTime.now();
     }
 }

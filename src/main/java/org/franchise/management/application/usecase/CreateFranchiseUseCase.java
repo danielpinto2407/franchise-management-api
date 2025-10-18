@@ -1,7 +1,7 @@
 package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.model.Franchise;
-import org.franchise.management.domain.repository.FranchiseRepository;
+import org.franchise.management.infrastructure.drivenadapters.mongo.adapters.FranchiseMongoAdapter;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -13,13 +13,13 @@ import reactor.core.publisher.Mono;
 @Log4j2
 public class CreateFranchiseUseCase {
 
-    private final FranchiseRepository franchiseRepository;
+    private final FranchiseMongoAdapter franchiseRepository;
 
     public Mono<Franchise> createFranchise(Franchise franchise) {
         return franchiseRepository.save(franchise)
-                .doOnNext(f -> log.info("✅ Nueva franquicia creada: " + f.getName()))
+                .doOnNext(f -> log.info("Nueva franquicia creada: " + f.getName()))
                 .onErrorResume(e -> {
-                    log.error("❌ Error al crear franquicia: " + e.getMessage());
+                    log.error("Error al crear franquicia: " + e.getMessage());
                     return Mono.error(e);
                 });
     }

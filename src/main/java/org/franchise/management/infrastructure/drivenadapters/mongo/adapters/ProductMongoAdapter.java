@@ -8,6 +8,7 @@ import org.franchise.management.infrastructure.drivenadapters.mongo.repository.P
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -31,26 +32,34 @@ public class ProductMongoAdapter implements ProductRepository {
                     if (!exists) {
                         return Mono.empty();
                     }
+
                     product.setBranchId(branchId);
                     return mongoTemplate.save(product);
+                })
+                .flatMap(savedProduct -> {
+                    Query branchQuery = new Query(Criteria.where("_id").is(branchId));
+                    Update update = new Update().addToSet("productIds", savedProduct.getId());
+
+                    return mongoTemplate.updateFirst(branchQuery, update, "branches")
+                            .thenReturn(savedProduct);
                 });
     }
 
     @Override
     public Mono<Void> deleteProductFromBranch(String franchiseId, String branchId, String productId) {
         return productMongoRepository.deleteById(productId)
-                .doOnSuccess(v -> log.info("🗑️ Producto eliminado: {}", productId));
+                .doOnSuccess(v -> log.info("Producto eliminado: {}", productId));
     }
 
     @Override
-    public Mono<Product> updateProductStock(String franchiseId, String branchId, String productId, Integer newStock) {
+    public Mono<Product> updateProductStock(String productId, Integer newStock) {
         return productMongoRepository.findById(productId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado")))
                 .flatMap(product -> {
                     product.updateStock(newStock);
                     return productMongoRepository.save(product);
                 })
-                .doOnNext(p -> log.info("🔄 Stock actualizado: {} → {}", p.getName(), p.getStock()))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado")));
+                .doOnNext(p -> log.info("Stock actualizado: {} → {}", p.getName(), p.getStock()));
     }
 
     @Override
@@ -61,7 +70,7 @@ public class ProductMongoAdapter implements ProductRepository {
                 .flatMap(group -> group
                         .sort((p1, p2) -> p2.getStock().compareTo(p1.getStock()))
                         .next())
-                .doOnComplete(() -> log.info("✅ Consulta de productos con mayor stock completada"));
+                .doOnComplete(() -> log.info("Consulta de productos con mayor stock completada"));
     }
 
     @Override
@@ -71,7 +80,7 @@ public class ProductMongoAdapter implements ProductRepository {
                     product.updateName(newName);
                     return productMongoRepository.save(product);
                 })
-                .doOnNext(p -> log.info("✏️ Nombre de producto actualizado: {} → {}", productId, newName))
+                .doOnNext(p -> log.info("Nombre de producto actualizado: {} → {}", productId, newName))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado")));
     }
 

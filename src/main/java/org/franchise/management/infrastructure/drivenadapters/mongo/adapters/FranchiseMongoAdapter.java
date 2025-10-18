@@ -18,7 +18,7 @@ public class FranchiseMongoAdapter implements FranchiseRepository {
 
     @Override
     public Mono<Franchise> save(Franchise franchise) {
-        log.info("💾 Guardando nueva franquicia: {}", franchise.getName());
+        log.info("Guardando nueva franquicia: {}", franchise.getName());
         return franchiseMongoRepository.save(franchise);
     }
 
@@ -34,7 +34,7 @@ public class FranchiseMongoAdapter implements FranchiseRepository {
 
     @Override
     public Mono<Franchise> update(Franchise franchise) {
-        log.info("✏️ Actualizando franquicia: {}", franchise.getId());
+        log.info("Actualizando franquicia: {}", franchise.getId());
         return franchiseMongoRepository.save(franchise);
     }
 

@@ -169,12 +169,10 @@ class ProductHandlerTest {
                                 .verifyComplete();
         }
 
-        // ========== UPDATE STOCK TESTS ==========
-
         @Test
         @DisplayName("Should update stock successfully")
         void shouldUpdateStockSuccessfully() {
-
+                productId = "product123";
                 Product updatedProduct = Product.builder()
                                 .id(productId)
                                 .name("Coca Cola")
@@ -183,14 +181,12 @@ class ProductHandlerTest {
                                 .build();
 
                 Product requestBody = Product.builder()
+                                .id(productId)
                                 .stock(150)
                                 .build();
-
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
                 when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(requestBody));
-                when(updateProductStockUseCase.updateStock(eq(franchiseId), eq(branchId), eq(productId), eq(150)))
+                when(updateProductStockUseCase.updateStock(productId, 150))
                                 .thenReturn(Mono.just(updatedProduct));
 
                 Mono<ServerResponse> response = productHandler.updateStock(serverRequest);
@@ -200,7 +196,7 @@ class ProductHandlerTest {
                                 .verifyComplete();
 
                 verify(updateProductStockUseCase, times(1))
-                                .updateStock(eq(franchiseId), eq(branchId), eq(productId), eq(150));
+                                .updateStock(productId, 150);
         }
 
         @Test
@@ -213,11 +209,9 @@ class ProductHandlerTest {
 
                 IllegalArgumentException exception = new IllegalArgumentException("Stock cannot be negative");
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
                 when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(requestBody));
-                when(updateProductStockUseCase.updateStock(eq(franchiseId), eq(branchId), eq(productId), eq(-10)))
+                when(updateProductStockUseCase.updateStock(eq(productId), eq(-10)))
                                 .thenReturn(Mono.error(exception));
 
                 Mono<ServerResponse> response = productHandler.updateStock(serverRequest);

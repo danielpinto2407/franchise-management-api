@@ -1,6 +1,6 @@
 package org.franchise.management.application.usecase;
 
-import org.franchise.management.domain.repository.ProductRepository;
+import org.franchise.management.infrastructure.drivenadapters.mongo.adapters.ProductMongoAdapter;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -12,13 +12,13 @@ import reactor.core.publisher.Mono;
 @Log4j2
 public class DeleteProductFromBranchUseCase {
 
-    private final ProductRepository productRepository;
+    private final ProductMongoAdapter productRepository;
 
     public Mono<Void> deleteProduct(String franchiseId, String branchId, String productId) {
         return productRepository.deleteProductFromBranch(franchiseId, branchId, productId)
-                .doOnSuccess(v -> log.info("🗑️ Producto eliminado: " + productId))
+                .doOnSuccess(v -> log.info("Producto eliminado: " + productId))
                 .onErrorResume(e -> {
-                    log.error("❌ Error al eliminar producto: " + e.getMessage());
+                    log.error("Error al eliminar producto: " + e.getMessage());
                     return Mono.error(e);
                 });
     }

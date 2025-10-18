@@ -27,7 +27,7 @@ public class BranchMongoAdapter implements BranchRepository {
                     return branchMongoRepository.save(branch)
                             .flatMap(savedBranch -> {
                                 franchise.addBranch(savedBranch.getId());
-                                log.info("🏬 Agregando sucursal '{}' a la franquicia '{}'", branch.getName(),
+                                log.info("Agregando sucursal '{}' a la franquicia '{}'", branch.getName(),
                                         franchiseId);
                                 return franchiseMongoRepository.save(franchise)
                                         .thenReturn(savedBranch);
@@ -39,7 +39,7 @@ public class BranchMongoAdapter implements BranchRepository {
     public Flux<Branch> findAllByFranchise(String franchiseId) {
         return franchiseMongoRepository.findById(franchiseId)
                 .flatMapMany(franchise -> {
-                    log.info("📋 Listando sucursales de la franquicia '{}'", franchiseId);
+                    log.info("Listando sucursales de la franquicia '{}'", franchiseId);
                     return Flux.fromIterable(franchise.getBranchIds())
                             .flatMap(branchMongoRepository::findById);
                 });
@@ -52,7 +52,7 @@ public class BranchMongoAdapter implements BranchRepository {
 
     @Override
     public Mono<Void> deleteBranchFromFranchise(String franchiseId, String branchId) {
-        log.info("🗑️ Eliminando sucursal '{}' de la franquicia '{}'", branchId, franchiseId);
+        log.info("Eliminando sucursal '{}' de la franquicia '{}'", branchId, franchiseId);
 
         return franchiseMongoRepository.findById(franchiseId)
                 .flatMap(franchise -> {

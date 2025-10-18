@@ -14,7 +14,7 @@ public interface ProductRepository {
 
     Mono<Void> deleteProductFromBranch(String franchiseId, String branchId, String productId);
 
-    Mono<Product> updateProductStock(String franchiseId, String branchId, String productId, Integer newStock);
+    Mono<Product> updateProductStock(String productId, Integer newStock);
 
     Flux<Product> findMaxStockProductByBranch(String franchiseId);
 

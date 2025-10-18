@@ -33,8 +33,6 @@ class FranchiseTest {
         assertEquals("McDonald's", franchise.getName());
         assertNotNull(franchise.getBranchIds());
         assertTrue(franchise.getBranchIds().isEmpty());
-        assertNotNull(franchise.getCreatedAt());
-        assertNotNull(franchise.getUpdatedAt());
     }
 
     @Test
@@ -57,7 +55,6 @@ class FranchiseTest {
 
         assertEquals(1, franchise.getBranchIds().size());
         assertTrue(franchise.getBranchIds().contains("branch123"));
-        assertNotNull(franchise.getUpdatedAt());
     }
 
     @Test
@@ -128,7 +125,6 @@ class FranchiseTest {
         assertEquals(1, franchise.getBranchIds().size());
         assertFalse(franchise.getBranchIds().contains("branch123"));
         assertTrue(franchise.getBranchIds().contains("branch456"));
-        assertNotNull(franchise.getUpdatedAt());
     }
 
     @Test
@@ -153,20 +149,9 @@ class FranchiseTest {
     @Test
     @DisplayName("Should update franchise name successfully")
     void shouldUpdateName() {
-        LocalDateTime oldUpdatedAt = franchise.getUpdatedAt();
-
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
 
         franchise.updateName("KFC");
-
         assertEquals("KFC", franchise.getName());
-        assertNotNull(franchise.getUpdatedAt());
-        assertTrue(franchise.getUpdatedAt().isAfter(oldUpdatedAt) ||
-                franchise.getUpdatedAt().isEqual(oldUpdatedAt));
     }
 
     @Test
@@ -264,17 +249,6 @@ class FranchiseTest {
                 .build();
 
         assertDoesNotThrow(() -> newFranchise.removeBranch("branch123"));
-    }
-
-    @Test
-    @DisplayName("Should have timestamps when created")
-    void shouldHaveTimestampsWhenCreated() {
-        Franchise newFranchise = Franchise.builder()
-                .name("New Franchise")
-                .build();
-
-        assertNotNull(newFranchise.getCreatedAt());
-        assertNotNull(newFranchise.getUpdatedAt());
     }
 
     @Test

@@ -2,6 +2,7 @@ package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.model.Branch;
 import org.franchise.management.domain.repository.BranchRepository;
+import org.franchise.management.infrastructure.drivenadapters.mongo.adapters.BranchMongoAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.*;
 class AddBranchToFranchiseUseCaseTest {
 
         @Mock
-        private BranchRepository branchRepository;
+        private BranchMongoAdapter branchRepository;
 
         @InjectMocks
         private AddBranchToFranchiseUseCase useCase;

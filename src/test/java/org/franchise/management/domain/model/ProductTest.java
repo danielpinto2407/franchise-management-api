@@ -32,8 +32,6 @@ class ProductTest {
         assertEquals("Coca Cola", product.getName());
         assertEquals(100, product.getStock());
         assertEquals("branch456", product.getBranchId());
-        assertNotNull(product.getCreatedAt());
-        assertNotNull(product.getUpdatedAt());
     }
 
     @Test
@@ -56,7 +54,6 @@ class ProductTest {
         product.updateStock(150);
 
         assertEquals(150, product.getStock());
-        assertNotNull(product.getUpdatedAt());
     }
 
     @Test
@@ -81,18 +78,10 @@ class ProductTest {
     @Test
     @DisplayName("Should update product name successfully")
     void shouldUpdateName() {
-        String oldUpdatedAt = product.getUpdatedAt().toString();
-
-        try {
-            Thread.sleep(10); // Pequeña pausa para que cambie el timestamp
-        } catch (InterruptedException e) {
-            // Ignorar
-        }
 
         product.updateName("Pepsi");
 
         assertEquals("Pepsi", product.getName());
-        assertNotNull(product.getUpdatedAt());
     }
 
     @Test
@@ -122,18 +111,5 @@ class ProductTest {
                 () -> product.updateName("   "));
 
         assertEquals("Product name cannot be empty", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Should have default timestamps when created")
-    void shouldHaveDefaultTimestamps() {
-        Product newProduct = Product.builder()
-                .name("Fanta")
-                .stock(25)
-                .branchId("branch999")
-                .build();
-
-        assertNotNull(newProduct.getCreatedAt());
-        assertNotNull(newProduct.getUpdatedAt());
     }
 }

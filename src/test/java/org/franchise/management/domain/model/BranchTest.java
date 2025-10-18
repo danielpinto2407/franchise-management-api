@@ -32,8 +32,6 @@ class BranchTest {
         assertEquals("franchise456", branch.getFranchiseId());
         assertNotNull(branch.getProductIds());
         assertTrue(branch.getProductIds().isEmpty());
-        assertNotNull(branch.getCreatedAt());
-        assertNotNull(branch.getUpdatedAt());
     }
 
     @Test
@@ -131,7 +129,6 @@ class BranchTest {
         branch.updateName("Sucursal Sur");
 
         assertEquals("Sucursal Sur", branch.getName());
-        assertNotNull(branch.getUpdatedAt());
     }
 
     @Test

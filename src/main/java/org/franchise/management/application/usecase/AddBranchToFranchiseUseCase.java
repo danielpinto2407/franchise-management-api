@@ -1,7 +1,7 @@
 package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.model.Branch;
-import org.franchise.management.domain.repository.BranchRepository;
+import org.franchise.management.infrastructure.drivenadapters.mongo.adapters.BranchMongoAdapter;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -13,15 +13,15 @@ import reactor.core.publisher.Mono;
 @Log4j2
 public class AddBranchToFranchiseUseCase {
 
-    private final BranchRepository branchRepository;
+    private final BranchMongoAdapter branchRepository;
 
     public Mono<Branch> addBranch(String franchiseId, Branch branch) {
         branch.setFranchiseId(franchiseId);
         return branchRepository.addBranchToFranchise(franchiseId, branch)
-                .doOnNext(b -> log.info("✅ Sucursal agregada a franquicia {}: {}", franchiseId, b.getName()))
+                .doOnNext(b -> log.info("Sucursal agregada a franquicia {}: {}", franchiseId, b.getName()))
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Franquicia no encontrada.")))
                 .onErrorResume(e -> {
-                    log.error("❌ Error al agregar sucursal: {}", e.getMessage());
+                    log.error("Error al agregar sucursal: {}", e.getMessage());
                     return Mono.error(e);
                 });
     }

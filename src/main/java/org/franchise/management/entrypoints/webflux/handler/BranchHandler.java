@@ -36,7 +36,6 @@ public class BranchHandler {
                 String branchId = request.pathVariable("branchId");
 
                 return request.bodyToMono(Branch.class)
-                                .flatMap(this::validateBranchName)
                                 .flatMap(branch -> updateBranchNameUseCase.updateBranchName(branchId, branch.getName()))
                                 .flatMap(ResponseUtil::ok)
                                 .switchIfEmpty(ResponseUtil.emptyBody())

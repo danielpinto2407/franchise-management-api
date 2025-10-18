@@ -19,7 +19,7 @@ public class ProductRouter {
                                                 handler::addProduct)
                                 .andRoute(DELETE("/franchises/{franchiseId}/branches/{branchId}/products/{productId}"),
                                                 handler::deleteProduct)
-                                .andRoute(PUT("/franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock"),
+                                .andRoute(PUT("/franchises/products/{productId}/stock"),
                                                 handler::updateStock)
                                 .andRoute(GET("/franchises/{franchiseId}/max-stock"), handler::getMaxStockProducts)
                                 .andRoute(PUT("/products/{productId}/name"), handler::updateProductName);
