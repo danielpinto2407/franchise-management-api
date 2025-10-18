@@ -5,6 +5,9 @@ import lombok.extern.log4j.Log4j2;
 import org.franchise.management.domain.model.Product;
 import org.franchise.management.domain.repository.ProductRepository;
 import org.franchise.management.infrastructure.drivenadapters.mongo.repository.ProductMongoRepository;
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,12 +18,22 @@ import reactor.core.publisher.Mono;
 public class ProductMongoAdapter implements ProductRepository {
 
     private final ProductMongoRepository productMongoRepository;
+    private final ReactiveMongoTemplate mongoTemplate;
 
     @Override
     public Mono<Product> addProductToBranch(String franchiseId, String branchId, Product product) {
-        product.setBranchId(branchId);
-        return productMongoRepository.save(product)
-                .doOnNext(p -> log.info("✅ Producto agregado: {}", p.getName()));
+
+        Query franchiseQuery = new Query(Criteria.where("_id").is(franchiseId)
+                .and("branchIds").in(branchId));
+
+        return mongoTemplate.exists(franchiseQuery, "franchises")
+                .flatMap(exists -> {
+                    if (!exists) {
+                        return Mono.empty();
+                    }
+                    product.setBranchId(branchId);
+                    return mongoTemplate.save(product);
+                });
     }
 
     @Override

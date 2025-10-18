@@ -18,7 +18,7 @@ public class AddProductToBranchUseCase {
     public Mono<Product> addProduct(String franchiseId, String branchId, Product product) {
         return productRepository.addProductToBranch(franchiseId, branchId, product)
                 .doOnNext(p -> log.info("✅ Producto agregado: " + p.getName()))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Sucursal no encontrada.")))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Franquicia o sucursal no encontradas.")))
                 .onErrorResume(e -> {
                     log.error("❌ Error al agregar producto: " + e.getMessage());
                     return Mono.error(e);
