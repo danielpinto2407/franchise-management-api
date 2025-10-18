@@ -10,6 +10,8 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+
 @Log4j2
 @Component
 @RequiredArgsConstructor
@@ -17,27 +19,33 @@ public class FranchiseHandler {
 
     private final CreateFranchiseUseCase createFranchiseUseCase;
 
-    /**
-     * Endpoint: POST /franchises
-     */
+    /** POST /franchises */
     public Mono<ServerResponse> createFranchise(ServerRequest request) {
         return request.bodyToMono(Franchise.class)
                 .flatMap(createFranchiseUseCase::createFranchise)
-                .flatMap(savedFranchise -> {
-                    log.info("✅ Franquicia creada exitosamente: {}", savedFranchise.getName());
-                    return ServerResponse.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(savedFranchise);
-                })
-                .switchIfEmpty(ServerResponse.badRequest()
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue("{\"error\": \"El cuerpo de la solicitud está vacío\"}"))
-                .onErrorResume(e -> {
-                    log.error("❌ Error al crear franquicia: {}", e.getMessage());
-                    return ServerResponse.badRequest()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(String.format("{\"error\": \"%s\"}", e.getMessage()));
-                });
+                .flatMap(this::okResponse)
+                .switchIfEmpty(handleEmptyBody())
+                .onErrorResume(e -> handleError("crear franquicia", e));
     }
 
+    private Mono<ServerResponse> okResponse(Object body) {
+        return ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body);
+    }
+
+    private Mono<ServerResponse> badRequest(String message) {
+        return ServerResponse.badRequest()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(Map.of("error", message));
+    }
+
+    private Mono<ServerResponse> handleEmptyBody() {
+        return badRequest("El cuerpo de la solicitud está vacío");
+    }
+
+    private Mono<ServerResponse> handleError(String action, Throwable e) {
+        log.error("❌ Error al {}: {}", action, e.getMessage(), e);
+        return badRequest(e.getMessage());
+    }
 }
