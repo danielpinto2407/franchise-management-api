@@ -51,18 +51,6 @@ public class BranchMongoAdapter implements BranchRepository {
     }
 
     @Override
-    public Mono<Void> deleteBranchFromFranchise(String franchiseId, String branchId) {
-        log.info("Eliminando sucursal '{}' de la franquicia '{}'", branchId, franchiseId);
-
-        return franchiseMongoRepository.findById(franchiseId)
-                .flatMap(franchise -> {
-                    franchise.removeBranch(branchId);
-                    return franchiseMongoRepository.save(franchise)
-                            .then(branchMongoRepository.deleteById(branchId));
-                });
-    }
-
-    @Override
     public Mono<Branch> updateBranchName(String branchId, String newName) {
         return branchMongoRepository.findById(branchId)
                 .flatMap(branch -> {

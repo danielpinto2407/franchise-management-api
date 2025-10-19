@@ -13,7 +13,7 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 public class FranchiseRouter {
 
     @Bean
-    public RouterFunction<ServerResponse> franchiseRoutes(FranchiseHandler handler) {
+    RouterFunction<ServerResponse> franchiseRoutes(FranchiseHandler handler) {
         return RouterFunctions.route(POST("/franchises"), handler::createFranchise);
     }
 }

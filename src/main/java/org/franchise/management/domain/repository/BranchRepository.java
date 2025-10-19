@@ -18,5 +18,4 @@ public interface BranchRepository {
 
     Mono<Branch> updateBranchName(String branchId, String newName);
 
-    Mono<Void> deleteBranchFromFranchise(String franchiseId, String branchId);
 }

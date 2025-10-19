@@ -353,7 +353,7 @@ class BranchHandlerTest {
         }
 
         @Test
-        @DisplayName("❌ Should return error when branch not found")
+        @DisplayName("Should return error when branch not found")
         void shouldReturnErrorWhenBranchNotFound() {
                 String branchId = "branch123";
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
@@ -369,7 +369,7 @@ class BranchHandlerTest {
         }
 
         @Test
-        @DisplayName("💥 Should handle unexpected exception when updating branch name")
+        @DisplayName("Should handle unexpected exception when updating branch name")
         void shouldHandleUnexpectedExceptionWhenUpdatingBranchName() {
                 String branchId = "branch123";
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
@@ -382,6 +382,97 @@ class BranchHandlerTest {
                 StepVerifier.create(response)
                                 .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
                                 .verifyComplete();
+        }
+
+        @Test
+        @DisplayName("Should validate and reject empty branch name when adding")
+        void shouldValidateAndRejectEmptyBranchNameWhenAdding() {
+
+                franchiseId = "franchise123";
+                Branch branchWithEmptyName = Branch.builder()
+                                .name("") // Nombre vacío
+                                .build();
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchWithEmptyName));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+
+                verify(addBranchToFranchiseUseCase, never()).addBranch(anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should validate and reject blank branch name when adding")
+        void shouldValidateAndRejectBlankBranchNameWhenAdding() {
+
+                franchiseId = "franchise123";
+                Branch branchWithBlankName = Branch.builder()
+                                .name("     ") // Solo espacios
+                                .build();
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchWithBlankName));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+
+                verify(addBranchToFranchiseUseCase, never()).addBranch(anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should validate and reject null branch name when adding")
+        void shouldValidateAndRejectNullBranchNameWhenAdding() {
+
+                franchiseId = "franchise123";
+                Branch branchWithNullName = Branch.builder()
+                                .name(null)
+                                .build();
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchWithNullName));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
+                                .verifyComplete();
+
+                verify(addBranchToFranchiseUseCase, never()).addBranch(anyString(), any());
+        }
+
+        @Test
+        @DisplayName("Should pass validation and add branch with valid name")
+        void shouldPassValidationAndAddBranchWithValidName() {
+                franchiseId = "franchise123";
+                Branch validBranch = Branch.builder()
+                                .name("Sucursal Centro")
+                                .build();
+
+                Branch savedBranch = Branch.builder()
+                                .id("branch456")
+                                .name("Sucursal Centro")
+                                .franchiseId(franchiseId)
+                                .build();
+
+                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
+                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(validBranch));
+                when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
+                                .thenReturn(Mono.just(savedBranch));
+
+                Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
+
+                StepVerifier.create(response)
+                                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
+                                .verifyComplete();
+
+                verify(addBranchToFranchiseUseCase, times(1)).addBranch(eq(franchiseId), any(Branch.class));
         }
 
 }

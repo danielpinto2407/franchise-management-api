@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.time.LocalDateTime;
 
+import org.franchise.management.domain.model.Branch;
 import org.franchise.management.domain.model.Product;
 import org.franchise.management.domain.repository.ProductRepository;
 import org.franchise.management.infrastructure.drivenadapters.mongo.repository.BranchMongoRepository;
@@ -16,6 +17,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 @Log4j2
 @Component
@@ -51,25 +53,35 @@ public class ProductMongoAdapter implements ProductRepository {
 
     @Override
     public Mono<Void> deleteProductFromBranch(String branchId, String productId) {
+        return validateBranchAndProduct(branchId, productId)
+                .flatMap(tuple -> {
+                    var branch = tuple.getT1();
+                    var product = tuple.getT2();
+
+                    branch.getProductIds().remove(productId);
+                    branch.setUpdatedAt(LocalDateTime.now());
+
+                    return productMongoRepository.delete(product)
+                            .then(branchMongoRepository.save(branch))
+                            .then();
+                })
+                .doOnSuccess(v -> log.info("Producto {} eliminado de branch {}", productId, branchId))
+                .doOnError(e -> log.error("Error al eliminar producto {} de branch {}: {}", productId, branchId,
+                        e.getMessage()));
+    }
+
+    private Mono<Tuple2<Branch, Product>> validateBranchAndProduct(String branchId, String productId) {
         return branchMongoRepository.findById(branchId)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Branch no encontrado: " + branchId)))
-                .flatMap(branch -> productMongoRepository.findById(productId)
+                .zipWhen(branch -> productMongoRepository.findById(productId)
                         .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado: " + productId)))
                         .flatMap(product -> {
                             if (!branchId.equals(product.getBranchId())) {
                                 return Mono.error(new IllegalArgumentException(
                                         "El producto no pertenece al branch especificado"));
                             }
-
-                            branch.getProductIds().remove(productId);
-                            branch.setUpdatedAt(LocalDateTime.now());
-
-                            return productMongoRepository.delete(product)
-                                    .then(branchMongoRepository.save(branch))
-                                    .then();
-                        }))
-                .doOnSuccess(v -> log.info("Producto {} eliminado de branch {}", productId, branchId))
-                .doOnError(e -> log.error("Error al eliminar producto {}: {}", productId, e.getMessage()));
+                            return Mono.just(product);
+                        }));
     }
 
     @Override

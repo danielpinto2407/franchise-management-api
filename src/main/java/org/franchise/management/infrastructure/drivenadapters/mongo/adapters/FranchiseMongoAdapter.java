@@ -23,23 +23,8 @@ public class FranchiseMongoAdapter implements FranchiseRepository {
     }
 
     @Override
-    public Mono<Franchise> findById(String franchiseId) {
-        return franchiseMongoRepository.findById(franchiseId);
-    }
-
-    @Override
-    public Flux<Franchise> findAll() {
-        return franchiseMongoRepository.findAll();
-    }
-
-    @Override
     public Mono<Franchise> update(Franchise franchise) {
         log.info("Actualizando franquicia: {}", franchise.getId());
         return franchiseMongoRepository.save(franchise);
-    }
-
-    @Override
-    public Mono<Void> deleteById(String franchiseId) {
-        return franchiseMongoRepository.deleteById(franchiseId);
     }
 }
