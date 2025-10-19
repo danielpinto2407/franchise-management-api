@@ -6,10 +6,12 @@ import lombok.extern.log4j.Log4j2;
 import java.time.LocalDateTime;
 
 import org.franchise.management.domain.model.Branch;
+import org.franchise.management.domain.model.Franchise;
 import org.franchise.management.domain.model.Product;
 import org.franchise.management.domain.repository.ProductRepository;
 import org.franchise.management.infrastructure.drivenadapters.mongo.repository.BranchMongoRepository;
 import org.franchise.management.infrastructure.drivenadapters.mongo.repository.ProductMongoRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -97,13 +99,25 @@ public class ProductMongoAdapter implements ProductRepository {
 
     @Override
     public Flux<Product> findMaxStockProductByBranch(String franchiseId) {
-        return productMongoRepository.findAll()
-                .filter(p -> p.getBranchId() != null)
-                .groupBy(Product::getBranchId)
-                .flatMap(group -> group
-                        .sort((p1, p2) -> p2.getStock().compareTo(p1.getStock()))
-                        .next())
-                .doOnComplete(() -> log.info("Consulta de productos con mayor stock completada"));
+        Query franchiseQuery = Query.query(Criteria.where("_id").is(franchiseId));
+
+        return mongoTemplate.findOne(franchiseQuery, Franchise.class, "franchises")
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Franquicia no encontrada")))
+                .flatMapMany(franchise -> {
+                    if (franchise.getBranchIds() == null || franchise.getBranchIds().isEmpty()) {
+                        log.warn("Franquicia {} no tiene sucursales", franchiseId);
+                    }
+
+                    return Flux.fromIterable(franchise.getBranchIds())
+                            .flatMap(branchId -> mongoTemplate.find(
+                                    Query.query(Criteria.where("branchId").is(branchId))
+                                            .with(Sort.by(Sort.Direction.DESC, "stock"))
+                                            .limit(1),
+                                    Product.class));
+                })
+                .doOnNext(p -> log.info("Max stock product: {} (stock: {}, branch: {})",
+                        p.getName(), p.getStock(), p.getBranchId()))
+                .doOnComplete(() -> log.info("Query completed for franchise {}", franchiseId));
     }
 
     @Override
