@@ -1,0 +1,8 @@
+spring:
+  data:
+    mongodb:
+      database: test-franchises
+  
+logging:
+  level:
+    org.springframework.data.mongodb: DEBUG
