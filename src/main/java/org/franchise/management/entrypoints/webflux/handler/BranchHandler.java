@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.franchise.management.application.usecase.AddBranchToFranchiseUseCase;
 import org.franchise.management.application.usecase.UpdateBranchNameUseCase;
-import org.franchise.management.domain.model.Branch;
+import org.franchise.management.entrypoints.webflux.dto.BranchRequestDTO;
+import org.franchise.management.entrypoints.webflux.dto.DTOMapper;
 import org.franchise.management.entrypoints.webflux.util.ResponseUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import org.franchise.management.entrypoints.webflux.util.ValidationUtil;
 
 @Log4j2
 @Component
@@ -18,13 +20,15 @@ public class BranchHandler {
 
         private final AddBranchToFranchiseUseCase addBranchToFranchiseUseCase;
         private final UpdateBranchNameUseCase updateBranchNameUseCase;
+        private final ValidationUtil validationUtil;
 
         /** POST /franchises/{franchiseId}/branches */
         public Mono<ServerResponse> addBranch(ServerRequest request) {
                 String franchiseId = request.pathVariable("franchiseId");
 
-                return request.bodyToMono(Branch.class)
-                                .flatMap(this::validateBranchName)
+                return request.bodyToMono(BranchRequestDTO.class)
+                                .flatMap(validationUtil::validate)
+                                .map(DTOMapper::toBranch)
                                 .flatMap(branch -> addBranchToFranchiseUseCase.addBranch(franchiseId, branch))
                                 .flatMap(ResponseUtil::ok)
                                 .switchIfEmpty(ResponseUtil.emptyBody())
@@ -35,18 +39,12 @@ public class BranchHandler {
         public Mono<ServerResponse> updateBranchName(ServerRequest request) {
                 String branchId = request.pathVariable("branchId");
 
-                return request.bodyToMono(Branch.class)
+                return request.bodyToMono(BranchRequestDTO.class)
+                                .flatMap(validationUtil::validate)
+                                .map(DTOMapper::toBranch)
                                 .flatMap(branch -> updateBranchNameUseCase.updateBranchName(branchId, branch.getName()))
                                 .flatMap(ResponseUtil::ok)
                                 .switchIfEmpty(ResponseUtil.emptyBody())
                                 .onErrorResume(e -> ResponseUtil.handleError("actualizar nombre de sucursal", e));
-        }
-
-        private Mono<Branch> validateBranchName(Branch branch) {
-                if (branch.getName() == null || branch.getName().isBlank()) {
-                        return Mono.error(
-                                        new IllegalArgumentException("El nombre de la sucursal no puede estar vacío"));
-                }
-                return Mono.just(branch);
         }
 }

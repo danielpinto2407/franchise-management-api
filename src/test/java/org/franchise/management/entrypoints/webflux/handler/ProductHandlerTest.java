@@ -2,6 +2,10 @@ package org.franchise.management.entrypoints.webflux.handler;
 
 import org.franchise.management.application.usecase.*;
 import org.franchise.management.domain.model.Product;
+import org.franchise.management.entrypoints.webflux.dto.ProductRequestDTO;
+import org.franchise.management.entrypoints.webflux.dto.UpdateNameRequestDTO;
+import org.franchise.management.entrypoints.webflux.dto.UpdateStockRequestDTO;
+import org.franchise.management.entrypoints.webflux.util.ValidationUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -44,13 +48,18 @@ class ProductHandlerTest {
         @Mock
         private ServerRequest serverRequest;
 
+        @Mock
+        private ValidationUtil validationUtil;
+
         @InjectMocks
         private ProductHandler productHandler;
 
         private String franchiseId;
         private String branchId;
         private String productId;
+
         private Product product;
+        private ProductRequestDTO productRequestDTO;
 
         @BeforeEach
         void setUp() {
@@ -62,6 +71,10 @@ class ProductHandlerTest {
                                 .name("Coca Cola")
                                 .stock(100)
                                 .branchId(branchId)
+                                .build();
+                productRequestDTO = ProductRequestDTO.builder()
+                                .name("Coca Cola")
+                                .stock(100)
                                 .build();
         }
 
@@ -77,7 +90,8 @@ class ProductHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(product));
+                when(serverRequest.bodyToMono(ProductRequestDTO.class)).thenReturn(Mono.just(productRequestDTO));
+                when(validationUtil.validate(productRequestDTO)).thenReturn(Mono.just(productRequestDTO));
                 when(addProductToBranchUseCase.addProduct(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.just(savedProduct));
 
@@ -98,7 +112,8 @@ class ProductHandlerTest {
                 IllegalArgumentException exception = new IllegalArgumentException("Sucursal no encontrada");
 
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(product));
+                when(serverRequest.bodyToMono(ProductRequestDTO.class)).thenReturn(Mono.just(productRequestDTO));
+                when(validationUtil.validate(productRequestDTO)).thenReturn(Mono.just(productRequestDTO));
                 when(addProductToBranchUseCase.addProduct(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.error(exception));
 
@@ -114,7 +129,7 @@ class ProductHandlerTest {
         void shouldHandleEmptyBodyWhenAddingProduct() {
 
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.empty());
+                when(serverRequest.bodyToMono(ProductRequestDTO.class)).thenReturn(Mono.empty());
 
                 Mono<ServerResponse> response = productHandler.addProduct(serverRequest);
 
@@ -175,12 +190,13 @@ class ProductHandlerTest {
                                 .branchId(branchId)
                                 .build();
 
-                Product requestBody = Product.builder()
+                UpdateStockRequestDTO requestBody = UpdateStockRequestDTO.builder()
                                 .stock(150)
                                 .build();
 
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(requestBody));
+                when(serverRequest.bodyToMono(UpdateStockRequestDTO.class)).thenReturn(Mono.just(requestBody));
+                when(validationUtil.validate(requestBody)).thenReturn(Mono.just(requestBody));
                 when(updateProductStockUseCase.updateStock(eq(productId), eq(150)))
                                 .thenReturn(Mono.just(updatedProduct));
 
@@ -198,14 +214,15 @@ class ProductHandlerTest {
         @DisplayName("Should return bad request when update stock fails")
         void shouldReturnBadRequestWhenUpdateStockFails() {
 
-                Product requestBody = Product.builder()
+                UpdateStockRequestDTO requestBody = UpdateStockRequestDTO.builder()
                                 .stock(-10)
                                 .build();
 
                 IllegalArgumentException exception = new IllegalArgumentException("Stock cannot be negative");
 
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(requestBody));
+                when(serverRequest.bodyToMono(UpdateStockRequestDTO.class)).thenReturn(Mono.just(requestBody));
+                when(validationUtil.validate(requestBody)).thenReturn(Mono.just(requestBody));
                 when(updateProductStockUseCase.updateStock(eq(productId), eq(-10)))
                                 .thenReturn(Mono.error(exception));
 
@@ -286,7 +303,9 @@ class ProductHandlerTest {
 
                 RuntimeException exception = new RuntimeException("Database error");
 
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(product));
+                when(serverRequest.bodyToMono(ProductRequestDTO.class)).thenReturn(Mono.just(productRequestDTO));
+                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
+                when(validationUtil.validate(productRequestDTO)).thenReturn(Mono.just(productRequestDTO));
                 when(addProductToBranchUseCase.addProduct(any(), any()))
                                 .thenReturn(Mono.error(exception));
 
@@ -325,7 +344,7 @@ class ProductHandlerTest {
         @DisplayName("Should update product name successfully")
         void shouldUpdateProductNameSuccessfully() {
                 productId = "product123";
-                Product body = Product.builder().name("Café Premium").build();
+                UpdateNameRequestDTO body = UpdateNameRequestDTO.builder().name("Café Premium").build();
 
                 Product updated = Product.builder()
                                 .id(productId)
@@ -335,7 +354,8 @@ class ProductHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(body));
+                when(serverRequest.bodyToMono(UpdateNameRequestDTO.class)).thenReturn(Mono.just(body));
+                when(validationUtil.validate(body)).thenReturn(Mono.just(body));
                 when(updateProductNameUseCase.updateProductName(eq(productId), eq(body.getName())))
                                 .thenReturn(Mono.just(updated));
 
@@ -355,7 +375,7 @@ class ProductHandlerTest {
                 productId = "product123";
 
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.empty());
+                when(serverRequest.bodyToMono(UpdateNameRequestDTO.class)).thenReturn(Mono.empty());
 
                 Mono<ServerResponse> response = productHandler.updateProductName(serverRequest);
 
@@ -370,11 +390,13 @@ class ProductHandlerTest {
         @DisplayName("Should return bad request when product name is empty")
         void shouldReturnBadRequestWhenProductNameIsEmpty() {
                 productId = "product123";
-                Product body = Product.builder().name("").build();
+                UpdateNameRequestDTO body = UpdateNameRequestDTO.builder().name("").build();
 
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(body));
-
+                when(serverRequest.bodyToMono(UpdateNameRequestDTO.class)).thenReturn(Mono.just(body));
+                when(validationUtil.validate(body))
+                                .thenReturn(Mono.error(
+                                                new IllegalArgumentException("El nombre del producto es obligatorio")));
                 Mono<ServerResponse> response = productHandler.updateProductName(serverRequest);
 
                 StepVerifier.create(response)
@@ -388,10 +410,11 @@ class ProductHandlerTest {
         @DisplayName("Should handle exception when updating product name")
         void shouldHandleExceptionWhenUpdatingProductName() {
                 productId = "product404";
-                Product body = Product.builder().name("Café Premium").build();
+                UpdateNameRequestDTO body = UpdateNameRequestDTO.builder().name("Café Premium").build();
 
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(body));
+                when(serverRequest.bodyToMono(UpdateNameRequestDTO.class)).thenReturn(Mono.just(body));
+                when(validationUtil.validate(body)).thenReturn(Mono.just(body));
                 when(updateProductNameUseCase.updateProductName(eq(productId), eq("Café Premium")))
                                 .thenReturn(Mono.error(new IllegalArgumentException("Producto no encontrado")));
 

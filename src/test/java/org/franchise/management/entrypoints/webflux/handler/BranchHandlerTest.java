@@ -4,6 +4,8 @@ import org.franchise.management.application.usecase.AddBranchToFranchiseUseCase;
 import org.franchise.management.application.usecase.UpdateBranchNameUseCase;
 import org.franchise.management.domain.model.Branch;
 import org.franchise.management.domain.repository.BranchRepository;
+import org.franchise.management.entrypoints.webflux.dto.BranchRequestDTO;
+import org.franchise.management.entrypoints.webflux.util.ValidationUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -40,15 +42,22 @@ class BranchHandlerTest {
         @Mock
         private ServerRequest serverRequest;
 
+        @Mock
+        private ValidationUtil validationUtil;
+
         @InjectMocks
         private BranchHandler branchHandler;
 
+        private BranchRequestDTO branchDTO;
         private Branch branch;
         private String franchiseId;
 
         @BeforeEach
         void setUp() {
                 franchiseId = "franchise123";
+                branchDTO = BranchRequestDTO.builder()
+                                .name("Sucursal Centro")
+                                .build();
                 branch = Branch.builder()
                                 .name("Sucursal Centro")
                                 .build();
@@ -65,7 +74,8 @@ class BranchHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.just(savedBranch));
 
@@ -86,7 +96,8 @@ class BranchHandlerTest {
                 IllegalArgumentException exception = new IllegalArgumentException("Franquicia no encontrada");
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.error(exception));
 
@@ -107,7 +118,8 @@ class BranchHandlerTest {
                 IllegalArgumentException validationError = new IllegalArgumentException("Branch name is required");
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.error(validationError));
 
@@ -123,7 +135,7 @@ class BranchHandlerTest {
         void shouldHandleEmptyRequestBody() {
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.empty());
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.empty());
 
                 Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
@@ -146,7 +158,8 @@ class BranchHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(customFranchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(addBranchToFranchiseUseCase.addBranch(eq(customFranchiseId), any(Branch.class)))
                                 .thenReturn(Mono.just(savedBranch));
 
@@ -167,7 +180,8 @@ class BranchHandlerTest {
                 RuntimeException runtimeException = new RuntimeException("Database connection error");
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.error(runtimeException));
 
@@ -189,7 +203,8 @@ class BranchHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.just(savedBranch));
 
@@ -207,7 +222,8 @@ class BranchHandlerTest {
                 IllegalArgumentException exception = new IllegalArgumentException("Error message");
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.error(exception));
 
@@ -222,11 +238,11 @@ class BranchHandlerTest {
         @DisplayName("Should handle multiple branches for same franchise")
         void shouldHandleMultipleBranchesForSameFranchise() {
 
-                Branch firstBranch = Branch.builder()
+                BranchRequestDTO firstBranch = BranchRequestDTO.builder()
                                 .name("Sucursal 1")
                                 .build();
 
-                Branch secondBranch = Branch.builder()
+                BranchRequestDTO secondBranch = BranchRequestDTO.builder()
                                 .name("Sucursal 2")
                                 .build();
 
@@ -244,7 +260,8 @@ class BranchHandlerTest {
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
 
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(firstBranch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(firstBranch));
+                when(validationUtil.validate(firstBranch)).thenReturn(Mono.just(firstBranch));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.just(savedFirstBranch));
 
@@ -254,7 +271,8 @@ class BranchHandlerTest {
                                 .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
                                 .verifyComplete();
 
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(secondBranch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(secondBranch));
+                when(validationUtil.validate(secondBranch)).thenReturn(Mono.just(secondBranch));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.just(savedSecondBranch));
 
@@ -270,7 +288,7 @@ class BranchHandlerTest {
         void shouldHandleBranchWithLongName() {
 
                 String longName = "Sucursal Centro Comercial Principal Ubicada en la Zona Norte de la Ciudad";
-                Branch longNameBranch = Branch.builder()
+                BranchRequestDTO longNameBranch = BranchRequestDTO.builder()
                                 .name(longName)
                                 .build();
 
@@ -281,7 +299,8 @@ class BranchHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(longNameBranch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(longNameBranch));
+                when(validationUtil.validate(longNameBranch)).thenReturn(Mono.just(longNameBranch));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.just(savedBranch));
 
@@ -296,7 +315,7 @@ class BranchHandlerTest {
         @DisplayName("✅ Should update branch name successfully")
         void shouldUpdateBranchNameSuccessfully() {
                 String branchId = "branch123";
-                Branch branchRequest = Branch.builder().name("Sucursal Actualizada").build();
+                BranchRequestDTO branchRequest = BranchRequestDTO.builder().name("Sucursal Actualizada").build();
 
                 Branch updatedBranch = Branch.builder()
                                 .id(branchId)
@@ -305,7 +324,8 @@ class BranchHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchRequest));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchRequest));
+                when(validationUtil.validate(branchRequest)).thenReturn(Mono.just(branchRequest));
                 when(updateBranchNameUseCase.updateBranchName(branchId, "Sucursal Actualizada"))
                                 .thenReturn(Mono.just(updatedBranch));
 
@@ -323,7 +343,7 @@ class BranchHandlerTest {
         void shouldReturnBadRequestWhenBodyIsEmpty() {
                 String branchId = "branch123";
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.empty());
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.empty());
 
                 Mono<ServerResponse> response = branchHandler.updateBranchName(serverRequest);
 
@@ -341,7 +361,7 @@ class BranchHandlerTest {
                 branch.setName(null);
 
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
 
                 Mono<ServerResponse> response = branchHandler.updateBranchName(serverRequest);
 
@@ -357,7 +377,8 @@ class BranchHandlerTest {
         void shouldReturnErrorWhenBranchNotFound() {
                 String branchId = "branch123";
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(updateBranchNameUseCase.updateBranchName(branchId, branch.getName()))
                                 .thenReturn(Mono.error(new IllegalArgumentException("Sucursal no encontrada")));
 
@@ -373,7 +394,8 @@ class BranchHandlerTest {
         void shouldHandleUnexpectedExceptionWhenUpdatingBranchName() {
                 String branchId = "branch123";
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchDTO));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(branchDTO));
                 when(updateBranchNameUseCase.updateBranchName(branchId, branch.getName()))
                                 .thenReturn(Mono.error(new RuntimeException("Database error")));
 
@@ -389,12 +411,12 @@ class BranchHandlerTest {
         void shouldValidateAndRejectEmptyBranchNameWhenAdding() {
 
                 franchiseId = "franchise123";
-                Branch branchWithEmptyName = Branch.builder()
-                                .name("") // Nombre vacío
+                BranchRequestDTO branchWithEmptyName = BranchRequestDTO.builder()
+                                .name("")
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchWithEmptyName));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchWithEmptyName));
 
                 Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
@@ -410,12 +432,12 @@ class BranchHandlerTest {
         void shouldValidateAndRejectBlankBranchNameWhenAdding() {
 
                 franchiseId = "franchise123";
-                Branch branchWithBlankName = Branch.builder()
-                                .name("     ") // Solo espacios
+                BranchRequestDTO branchWithBlankName = BranchRequestDTO.builder()
+                                .name("     ")
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchWithBlankName));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchWithBlankName));
 
                 Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
@@ -431,12 +453,12 @@ class BranchHandlerTest {
         void shouldValidateAndRejectNullBranchNameWhenAdding() {
 
                 franchiseId = "franchise123";
-                Branch branchWithNullName = Branch.builder()
+                BranchRequestDTO branchWithNullName = BranchRequestDTO.builder()
                                 .name(null)
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(branchWithNullName));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(branchWithNullName));
 
                 Mono<ServerResponse> response = branchHandler.addBranch(serverRequest);
 
@@ -451,7 +473,7 @@ class BranchHandlerTest {
         @DisplayName("Should pass validation and add branch with valid name")
         void shouldPassValidationAndAddBranchWithValidName() {
                 franchiseId = "franchise123";
-                Branch validBranch = Branch.builder()
+                BranchRequestDTO validBranch = BranchRequestDTO.builder()
                                 .name("Sucursal Centro")
                                 .build();
 
@@ -462,7 +484,8 @@ class BranchHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.bodyToMono(Branch.class)).thenReturn(Mono.just(validBranch));
+                when(serverRequest.bodyToMono(BranchRequestDTO.class)).thenReturn(Mono.just(validBranch));
+                when(validationUtil.validate(branchDTO)).thenReturn(Mono.just(validBranch));
                 when(addBranchToFranchiseUseCase.addBranch(eq(franchiseId), any(Branch.class)))
                                 .thenReturn(Mono.just(savedBranch));
 

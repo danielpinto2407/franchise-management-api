@@ -4,7 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.franchise.management.application.usecase.*;
 import org.franchise.management.domain.model.Product;
+import org.franchise.management.entrypoints.webflux.dto.DTOMapper;
+import org.franchise.management.entrypoints.webflux.dto.ProductRequestDTO;
+import org.franchise.management.entrypoints.webflux.dto.UpdateNameRequestDTO;
+import org.franchise.management.entrypoints.webflux.dto.UpdateStockRequestDTO;
 import org.franchise.management.entrypoints.webflux.util.ResponseUtil;
+import org.franchise.management.entrypoints.webflux.util.ValidationUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -20,12 +25,15 @@ public class ProductHandler {
         private final DeleteProductFromBranchUseCase deleteProductFromBranchUseCase;
         private final UpdateProductStockUseCase updateProductStockUseCase;
         private final GetMaxStockProductByBranchUseCase findMaxStockProductByFranchiseUseCase;
+        private final ValidationUtil validationUtil;
 
         /** POST /franchises/{franchiseId}/branches/{branchId}/products */
         public Mono<ServerResponse> addProduct(ServerRequest request) {
                 String branchId = request.pathVariable("branchId");
 
-                return request.bodyToMono(Product.class)
+                return request.bodyToMono(ProductRequestDTO.class)
+                                .flatMap(validationUtil::validate)
+                                .map(DTOMapper::toProduct)
                                 .flatMap(product -> addProductToBranchUseCase.addProduct(branchId,
                                                 product))
                                 .flatMap(ResponseUtil::ok)
@@ -49,7 +57,9 @@ public class ProductHandler {
         public Mono<ServerResponse> updateStock(ServerRequest request) {
                 String productId = request.pathVariable("productId");
 
-                return request.bodyToMono(Product.class)
+                return request.bodyToMono(UpdateStockRequestDTO.class)
+                                .flatMap(validationUtil::validate)
+                                .map(DTOMapper::updateStockToProduct)
                                 .flatMap(body -> updateProductStockUseCase.updateStock(productId,
                                                 body.getStock()))
                                 .flatMap(ResponseUtil::ok)
@@ -71,14 +81,11 @@ public class ProductHandler {
         public Mono<ServerResponse> updateProductName(ServerRequest request) {
                 String productId = request.pathVariable("productId");
 
-                return request.bodyToMono(Product.class)
-                                .flatMap(body -> {
-                                        if (body.getName() == null || body.getName().isBlank()) {
-                                                return ResponseUtil.badRequest("El nombre del producto es requerido");
-                                        }
-                                        return updateProductNameUseCase.updateProductName(productId, body.getName())
-                                                        .flatMap(ResponseUtil::ok);
-                                })
+                return request.bodyToMono(UpdateNameRequestDTO.class)
+                                .flatMap(validationUtil::validate)
+                                .map(DTOMapper::updateNameRequestToProduct)
+                                .flatMap(body -> updateProductNameUseCase.updateProductName(productId, body.getName()))
+                                .flatMap(ResponseUtil::ok)
                                 .switchIfEmpty(ResponseUtil.emptyBody())
                                 .onErrorResume(e -> ResponseUtil.handleError("actualizar nombre de producto", e));
         }

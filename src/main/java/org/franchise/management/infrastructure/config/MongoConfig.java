@@ -27,7 +27,7 @@ public class MongoConfig {
     }
 
     @Bean
-    public ReactiveAuditorAware<String> auditorProvider() {
+    ReactiveAuditorAware<String> auditorProvider() {
         return () -> Mono.just("system");
     }
 }
