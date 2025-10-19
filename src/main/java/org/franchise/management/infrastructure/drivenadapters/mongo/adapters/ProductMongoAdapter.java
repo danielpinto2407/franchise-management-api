@@ -2,8 +2,12 @@ package org.franchise.management.infrastructure.drivenadapters.mongo.adapters;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
+import java.time.LocalDateTime;
+
 import org.franchise.management.domain.model.Product;
 import org.franchise.management.domain.repository.ProductRepository;
+import org.franchise.management.infrastructure.drivenadapters.mongo.repository.BranchMongoRepository;
 import org.franchise.management.infrastructure.drivenadapters.mongo.repository.ProductMongoRepository;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -19,6 +23,7 @@ import reactor.core.publisher.Mono;
 public class ProductMongoAdapter implements ProductRepository {
 
     private final ProductMongoRepository productMongoRepository;
+    private final BranchMongoRepository branchMongoRepository;
     private final ReactiveMongoTemplate mongoTemplate;
 
     @Override
@@ -46,8 +51,25 @@ public class ProductMongoAdapter implements ProductRepository {
 
     @Override
     public Mono<Void> deleteProductFromBranch(String branchId, String productId) {
-        return productMongoRepository.deleteById(productId)
-                .doOnSuccess(v -> log.info("Producto eliminado: {}", productId));
+        return branchMongoRepository.findById(branchId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Branch no encontrado: " + branchId)))
+                .flatMap(branch -> productMongoRepository.findById(productId)
+                        .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado: " + productId)))
+                        .flatMap(product -> {
+                            if (!branchId.equals(product.getBranchId())) {
+                                return Mono.error(new IllegalArgumentException(
+                                        "El producto no pertenece al branch especificado"));
+                            }
+
+                            branch.getProductIds().remove(productId);
+                            branch.setUpdatedAt(LocalDateTime.now());
+
+                            return productMongoRepository.delete(product)
+                                    .then(branchMongoRepository.save(branch))
+                                    .then();
+                        }))
+                .doOnSuccess(v -> log.info("Producto {} eliminado de branch {}", productId, branchId))
+                .doOnError(e -> log.error("Error al eliminar producto {}: {}", productId, e.getMessage()));
     }
 
     @Override
