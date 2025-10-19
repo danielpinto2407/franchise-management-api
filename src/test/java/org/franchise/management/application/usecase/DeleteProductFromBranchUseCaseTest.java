@@ -43,14 +43,14 @@ class DeleteProductFromBranchUseCaseTest {
         @DisplayName("Should delete product successfully")
         void shouldDeleteProductSuccessfully() {
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.empty());
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .verifyComplete();
 
                 verify(productRepository, times(1))
-                                .deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId));
+                                .deleteProductFromBranch(eq(branchId), eq(productId));
         }
 
         @Test
@@ -59,16 +59,16 @@ class DeleteProductFromBranchUseCaseTest {
 
                 RuntimeException repositoryError = new RuntimeException("Database connection error");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(repositoryError));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
                                                 throwable.getMessage().equals("Database connection error"))
                                 .verify();
 
                 verify(productRepository, times(1))
-                                .deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId));
+                                .deleteProductFromBranch(eq(branchId), eq(productId));
         }
 
         @Test
@@ -77,10 +77,10 @@ class DeleteProductFromBranchUseCaseTest {
 
                 IllegalArgumentException notFoundError = new IllegalArgumentException("Product not found");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(notFoundError));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
                                                 throwable.getMessage().equals("Product not found"))
                                 .verify();
@@ -92,10 +92,10 @@ class DeleteProductFromBranchUseCaseTest {
 
                 IllegalArgumentException notFoundError = new IllegalArgumentException("Branch not found");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(notFoundError));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
                                                 throwable.getMessage().equals("Branch not found"))
                                 .verify();
@@ -107,10 +107,10 @@ class DeleteProductFromBranchUseCaseTest {
 
                 IllegalArgumentException notFoundError = new IllegalArgumentException("Franchise not found");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(notFoundError));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
                                                 throwable.getMessage().equals("Franchise not found"))
                                 .verify();
@@ -119,25 +119,20 @@ class DeleteProductFromBranchUseCaseTest {
         @Test
         @DisplayName("Should delete product with different IDs")
         void shouldDeleteProductWithDifferentIds() {
-
-                String differentFranchiseId = "franchise999";
                 String differentBranchId = "branch888";
                 String differentProductId = "product777";
 
                 when(productRepository.deleteProductFromBranch(
-                                eq(differentFranchiseId),
                                 eq(differentBranchId),
                                 eq(differentProductId)))
                                 .thenReturn(Mono.empty());
 
                 StepVerifier.create(useCase.deleteProduct(
-                                differentFranchiseId,
                                 differentBranchId,
                                 differentProductId))
                                 .verifyComplete();
 
                 verify(productRepository).deleteProductFromBranch(
-                                eq(differentFranchiseId),
                                 eq(differentBranchId),
                                 eq(differentProductId));
         }
@@ -148,10 +143,10 @@ class DeleteProductFromBranchUseCaseTest {
 
                 RuntimeException timeoutError = new RuntimeException("Request timeout");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(timeoutError));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectErrorMatches(throwable -> throwable.getMessage().equals("Request timeout"))
                                 .verify();
         }
@@ -162,10 +157,10 @@ class DeleteProductFromBranchUseCaseTest {
 
                 RuntimeException permissionError = new RuntimeException("Permission denied to delete product");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(permissionError));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectErrorMatches(throwable -> throwable.getMessage()
                                                 .equals("Permission denied to delete product"))
                                 .verify();
@@ -175,13 +170,13 @@ class DeleteProductFromBranchUseCaseTest {
         @DisplayName("Should log success when product is deleted")
         void shouldLogSuccessWhenProductIsDeleted() {
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.empty());
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .verifyComplete();
 
-                verify(productRepository).deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId));
+                verify(productRepository).deleteProductFromBranch(eq(branchId), eq(productId));
         }
 
         @Test
@@ -190,10 +185,10 @@ class DeleteProductFromBranchUseCaseTest {
 
                 RuntimeException concurrentError = new RuntimeException("Product already deleted by another process");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(concurrentError));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectErrorMatches(throwable -> throwable.getMessage().contains("already deleted"))
                                 .verify();
         }
@@ -204,10 +199,10 @@ class DeleteProductFromBranchUseCaseTest {
 
                 Exception genericException = new Exception("Unexpected error");
 
-                when(productRepository.deleteProductFromBranch(eq(franchiseId), eq(branchId), eq(productId)))
+                when(productRepository.deleteProductFromBranch(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(genericException));
 
-                StepVerifier.create(useCase.deleteProduct(franchiseId, branchId, productId))
+                StepVerifier.create(useCase.deleteProduct(branchId, productId))
                                 .expectError(Exception.class)
                                 .verify();
         }
@@ -216,11 +211,11 @@ class DeleteProductFromBranchUseCaseTest {
         @DisplayName("Should complete successfully with null parameters handling")
         void shouldHandleNullParameters() {
 
-                when(productRepository.deleteProductFromBranch(eq(null), eq(null), eq(null)))
+                when(productRepository.deleteProductFromBranch(eq(null), eq(null)))
                                 .thenReturn(Mono.error(new IllegalArgumentException("IDs cannot be null")));
 
-                StepVerifier.create(useCase.deleteProduct(null, null, null))
-                                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException)
+                StepVerifier.create(useCase.deleteProduct(null, null))
+                                .expectErrorMatches(IllegalArgumentException.class::isInstance)
                                 .verify();
         }
 }

@@ -16,10 +16,10 @@ public class AddProductToBranchUseCase {
 
     private final ProductMongoAdapter productRepository;
 
-    public Mono<Product> addProduct(String franchiseId, String branchId, Product product) {
-        return productRepository.addProductToBranch(franchiseId, branchId, product)
+    public Mono<Product> addProduct(String branchId, Product product) {
+        return productRepository.addProductToBranch(branchId, product)
                 .doOnNext(p -> log.info("Producto agregado: " + p.getName()))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Franquicia o sucursal no encontradas.")))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Sucursal no encontrada.")))
                 .onErrorResume(e -> {
                     log.error("Error al agregar producto: " + e.getMessage());
                     return Mono.error(e);

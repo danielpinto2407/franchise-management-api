@@ -14,8 +14,8 @@ public class DeleteProductFromBranchUseCase {
 
     private final ProductMongoAdapter productRepository;
 
-    public Mono<Void> deleteProduct(String franchiseId, String branchId, String productId) {
-        return productRepository.deleteProductFromBranch(franchiseId, branchId, productId)
+    public Mono<Void> deleteProduct(String branchId, String productId) {
+        return productRepository.deleteProductFromBranch(branchId, productId)
                 .doOnSuccess(v -> log.info("Producto eliminado: " + productId))
                 .onErrorResume(e -> {
                     log.error("Error al eliminar producto: " + e.getMessage());

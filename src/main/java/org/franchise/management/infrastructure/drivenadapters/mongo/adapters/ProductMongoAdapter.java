@@ -22,12 +22,11 @@ public class ProductMongoAdapter implements ProductRepository {
     private final ReactiveMongoTemplate mongoTemplate;
 
     @Override
-    public Mono<Product> addProductToBranch(String franchiseId, String branchId, Product product) {
+    public Mono<Product> addProductToBranch(String branchId, Product product) {
 
-        Query franchiseQuery = new Query(Criteria.where("_id").is(franchiseId)
-                .and("branchIds").in(branchId));
+        Query branchExistsQuery = new Query(Criteria.where("_id").is(branchId));
 
-        return mongoTemplate.exists(franchiseQuery, "franchises")
+        return mongoTemplate.exists(branchExistsQuery, "branches")
                 .flatMap(exists -> {
                     if (!exists) {
                         return Mono.empty();
@@ -46,7 +45,7 @@ public class ProductMongoAdapter implements ProductRepository {
     }
 
     @Override
-    public Mono<Void> deleteProductFromBranch(String franchiseId, String branchId, String productId) {
+    public Mono<Void> deleteProductFromBranch(String branchId, String productId) {
         return productMongoRepository.deleteById(productId)
                 .doOnSuccess(v -> log.info("Producto eliminado: {}", productId));
     }

@@ -23,11 +23,10 @@ public class ProductHandler {
 
         /** POST /franchises/{franchiseId}/branches/{branchId}/products */
         public Mono<ServerResponse> addProduct(ServerRequest request) {
-                String franchiseId = request.pathVariable("franchiseId");
                 String branchId = request.pathVariable("branchId");
 
                 return request.bodyToMono(Product.class)
-                                .flatMap(product -> addProductToBranchUseCase.addProduct(franchiseId, branchId,
+                                .flatMap(product -> addProductToBranchUseCase.addProduct(branchId,
                                                 product))
                                 .flatMap(ResponseUtil::ok)
                                 .switchIfEmpty(ResponseUtil.emptyBody())
@@ -36,11 +35,10 @@ public class ProductHandler {
 
         /** DELETE /franchises/{franchiseId}/branches/{branchId}/products/{productId} */
         public Mono<ServerResponse> deleteProduct(ServerRequest request) {
-                String franchiseId = request.pathVariable("franchiseId");
                 String branchId = request.pathVariable("branchId");
                 String productId = request.pathVariable("productId");
 
-                return deleteProductFromBranchUseCase.deleteProduct(franchiseId, branchId, productId)
+                return deleteProductFromBranchUseCase.deleteProduct(branchId, productId)
                                 .then(ServerResponse.noContent().build())
                                 .onErrorResume(e -> ResponseUtil.handleError("eliminar producto", e));
         }

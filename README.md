@@ -252,7 +252,7 @@ Content-Type: application/json
 
 #### Add Product to Branch
 ```http
-POST /franchises/{franchiseId}/branches/{branchId}/products
+POST /branches/{branchId}/products
 Content-Type: application/json
 
 {
@@ -273,14 +273,14 @@ Response: 200 OK
 
 #### Delete Product
 ```http
-DELETE /franchises/{franchiseId}/branches/{branchId}/products/{productId}
+DELETE /branches/{branchId}/products/{productId}
 
 Response: 204 No Content
 ```
 
 #### Update Product Stock
 ```http
-PUT /franchises/products/{productId}/stock
+PUT /products/{productId}/stock
 Content-Type: application/json
 
 {

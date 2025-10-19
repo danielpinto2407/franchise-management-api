@@ -10,9 +10,9 @@ import reactor.core.publisher.Mono;
  */
 public interface ProductRepository {
 
-    Mono<Product> addProductToBranch(String franchiseId, String branchId, Product product);
+    Mono<Product> addProductToBranch(String branchId, Product product);
 
-    Mono<Void> deleteProductFromBranch(String franchiseId, String branchId, String productId);
+    Mono<Void> deleteProductFromBranch(String branchId, String productId);
 
     Mono<Product> updateProductStock(String productId, Integer newStock);
 

@@ -76,10 +76,9 @@ class ProductHandlerTest {
                                 .branchId(branchId)
                                 .build();
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(product));
-                when(addProductToBranchUseCase.addProduct(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(addProductToBranchUseCase.addProduct(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.just(savedProduct));
 
                 Mono<ServerResponse> response = productHandler.addProduct(serverRequest);
@@ -89,7 +88,7 @@ class ProductHandlerTest {
                                 .verifyComplete();
 
                 verify(addProductToBranchUseCase, times(1))
-                                .addProduct(eq(franchiseId), eq(branchId), any(Product.class));
+                                .addProduct(eq(branchId), any(Product.class));
         }
 
         @Test
@@ -98,10 +97,9 @@ class ProductHandlerTest {
 
                 IllegalArgumentException exception = new IllegalArgumentException("Sucursal no encontrada");
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(product));
-                when(addProductToBranchUseCase.addProduct(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(addProductToBranchUseCase.addProduct(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.error(exception));
 
                 Mono<ServerResponse> response = productHandler.addProduct(serverRequest);
@@ -115,7 +113,6 @@ class ProductHandlerTest {
         @DisplayName("Should handle empty body when adding product")
         void shouldHandleEmptyBodyWhenAddingProduct() {
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.empty());
 
@@ -125,17 +122,16 @@ class ProductHandlerTest {
                                 .expectNextMatches(serverResponse -> serverResponse.statusCode().is4xxClientError())
                                 .verifyComplete();
 
-                verify(addProductToBranchUseCase, never()).addProduct(any(), any(), any());
+                verify(addProductToBranchUseCase, never()).addProduct(any(), any());
         }
 
         @Test
         @DisplayName("Should delete product successfully")
         void shouldDeleteProductSuccessfully() {
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(deleteProductFromBranchUseCase.deleteProduct(eq(franchiseId), eq(branchId), eq(productId)))
+                when(deleteProductFromBranchUseCase.deleteProduct(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.empty());
 
                 Mono<ServerResponse> response = productHandler.deleteProduct(serverRequest);
@@ -147,7 +143,7 @@ class ProductHandlerTest {
                                 .verifyComplete();
 
                 verify(deleteProductFromBranchUseCase, times(1))
-                                .deleteProduct(eq(franchiseId), eq(branchId), eq(productId));
+                                .deleteProduct(eq(branchId), eq(productId));
         }
 
         @Test
@@ -156,10 +152,9 @@ class ProductHandlerTest {
 
                 IllegalArgumentException exception = new IllegalArgumentException("Producto no encontrado");
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
                 when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
-                when(deleteProductFromBranchUseCase.deleteProduct(eq(franchiseId), eq(branchId), eq(productId)))
+                when(deleteProductFromBranchUseCase.deleteProduct(eq(branchId), eq(productId)))
                                 .thenReturn(Mono.error(exception));
 
                 Mono<ServerResponse> response = productHandler.deleteProduct(serverRequest);
@@ -172,7 +167,7 @@ class ProductHandlerTest {
         @Test
         @DisplayName("Should update stock successfully")
         void shouldUpdateStockSuccessfully() {
-                productId = "product123";
+
                 Product updatedProduct = Product.builder()
                                 .id(productId)
                                 .name("Coca Cola")
@@ -181,12 +176,12 @@ class ProductHandlerTest {
                                 .build();
 
                 Product requestBody = Product.builder()
-                                .id(productId)
                                 .stock(150)
                                 .build();
+
                 when(serverRequest.pathVariable("productId")).thenReturn(productId);
                 when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(requestBody));
-                when(updateProductStockUseCase.updateStock(productId, 150))
+                when(updateProductStockUseCase.updateStock(eq(productId), eq(150)))
                                 .thenReturn(Mono.just(updatedProduct));
 
                 Mono<ServerResponse> response = productHandler.updateStock(serverRequest);
@@ -196,7 +191,7 @@ class ProductHandlerTest {
                                 .verifyComplete();
 
                 verify(updateProductStockUseCase, times(1))
-                                .updateStock(productId, 150);
+                                .updateStock(eq(productId), eq(150));
         }
 
         @Test
@@ -240,7 +235,7 @@ class ProductHandlerTest {
                                 .build();
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(findMaxStockProductByFranchiseUseCase.getMaxStockProducts(eq(franchiseId)))
+                when(findMaxStockProductByFranchiseUseCase.getMaxStockProducts(franchiseId))
                                 .thenReturn(Flux.just(product1, product2));
 
                 Mono<ServerResponse> response = productHandler.getMaxStockProducts(serverRequest);
@@ -250,7 +245,7 @@ class ProductHandlerTest {
                                 .verifyComplete();
 
                 verify(findMaxStockProductByFranchiseUseCase, times(1))
-                                .getMaxStockProducts(eq(franchiseId));
+                                .getMaxStockProducts(franchiseId);
         }
 
         @Test
@@ -258,7 +253,7 @@ class ProductHandlerTest {
         void shouldReturnEmptyListWhenNoProducts() {
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(findMaxStockProductByFranchiseUseCase.getMaxStockProducts(eq(franchiseId)))
+                when(findMaxStockProductByFranchiseUseCase.getMaxStockProducts(franchiseId))
                                 .thenReturn(Flux.empty());
 
                 Mono<ServerResponse> response = productHandler.getMaxStockProducts(serverRequest);
@@ -274,7 +269,7 @@ class ProductHandlerTest {
                 IllegalArgumentException exception = new IllegalArgumentException("Franquicia no encontrada");
 
                 when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(findMaxStockProductByFranchiseUseCase.getMaxStockProducts(eq(franchiseId)))
+                when(findMaxStockProductByFranchiseUseCase.getMaxStockProducts(franchiseId))
                                 .thenReturn(Flux.error(exception));
 
                 Mono<ServerResponse> response = productHandler.getMaxStockProducts(serverRequest);
@@ -291,10 +286,8 @@ class ProductHandlerTest {
 
                 RuntimeException exception = new RuntimeException("Database error");
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(franchiseId);
-                when(serverRequest.pathVariable("branchId")).thenReturn(branchId);
                 when(serverRequest.bodyToMono(Product.class)).thenReturn(Mono.just(product));
-                when(addProductToBranchUseCase.addProduct(any(), any(), any()))
+                when(addProductToBranchUseCase.addProduct(any(), any()))
                                 .thenReturn(Mono.error(exception));
 
                 Mono<ServerResponse> response = productHandler.addProduct(serverRequest);
@@ -308,15 +301,12 @@ class ProductHandlerTest {
         @DisplayName("Should extract all path variables correctly")
         void shouldExtractAllPathVariablesCorrectly() {
 
-                String customFranchiseId = "franchise999";
                 String customBranchId = "branch888";
                 String customProductId = "product777";
 
-                when(serverRequest.pathVariable("franchiseId")).thenReturn(customFranchiseId);
                 when(serverRequest.pathVariable("branchId")).thenReturn(customBranchId);
                 when(serverRequest.pathVariable("productId")).thenReturn(customProductId);
                 when(deleteProductFromBranchUseCase.deleteProduct(
-                                eq(customFranchiseId),
                                 eq(customBranchId),
                                 eq(customProductId)))
                                 .thenReturn(Mono.empty());
@@ -327,13 +317,12 @@ class ProductHandlerTest {
                                 .expectNextMatches(serverResponse -> serverResponse.statusCode().value() == 204)
                                 .verifyComplete();
 
-                verify(serverRequest, times(1)).pathVariable("franchiseId");
                 verify(serverRequest, times(1)).pathVariable("branchId");
                 verify(serverRequest, times(1)).pathVariable("productId");
         }
 
         @Test
-        @DisplayName("✅ Should update product name successfully")
+        @DisplayName("Should update product name successfully")
         void shouldUpdateProductNameSuccessfully() {
                 productId = "product123";
                 Product body = Product.builder().name("Café Premium").build();
@@ -361,7 +350,7 @@ class ProductHandlerTest {
         }
 
         @Test
-        @DisplayName("❌ Should return bad request when body is empty")
+        @DisplayName("Should return bad request when body is empty")
         void shouldReturnBadRequestWhenBodyIsEmpty() {
                 productId = "product123";
 
@@ -378,7 +367,7 @@ class ProductHandlerTest {
         }
 
         @Test
-        @DisplayName("❌ Should return bad request when product name is empty")
+        @DisplayName("Should return bad request when product name is empty")
         void shouldReturnBadRequestWhenProductNameIsEmpty() {
                 productId = "product123";
                 Product body = Product.builder().name("").build();
@@ -396,7 +385,7 @@ class ProductHandlerTest {
         }
 
         @Test
-        @DisplayName("❌ Should handle exception when updating product name")
+        @DisplayName("Should handle exception when updating product name")
         void shouldHandleExceptionWhenUpdatingProductName() {
                 productId = "product404";
                 Product body = Product.builder().name("Café Premium").build();

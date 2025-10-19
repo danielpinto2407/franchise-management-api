@@ -1,7 +1,6 @@
 package org.franchise.management.application.usecase;
 
 import org.franchise.management.domain.model.Product;
-import org.franchise.management.domain.repository.ProductRepository;
 import org.franchise.management.infrastructure.drivenadapters.mongo.adapters.ProductMongoAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,12 +30,10 @@ class AddProductToBranchUseCaseTest {
         private AddProductToBranchUseCase useCase;
 
         private Product product;
-        private String franchiseId;
         private String branchId;
 
         @BeforeEach
         void setUp() {
-                franchiseId = "franchise123";
                 branchId = "branch456";
                 product = Product.builder()
                                 .id("product789")
@@ -57,10 +54,10 @@ class AddProductToBranchUseCaseTest {
                                 .branchId(branchId)
                                 .build();
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.just(savedProduct));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, product))
+                StepVerifier.create(useCase.addProduct(branchId, product))
                                 .expectNextMatches(p -> p.getId().equals("product789") &&
                                                 p.getName().equals("Coca Cola") &&
                                                 p.getStock().equals(100) &&
@@ -68,23 +65,23 @@ class AddProductToBranchUseCaseTest {
                                 .verifyComplete();
 
                 verify(productRepository, times(1))
-                                .addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class));
+                                .addProductToBranch(eq(branchId), any(Product.class));
         }
 
         @Test
         @DisplayName("Should return error when branch not found")
         void shouldReturnErrorWhenBranchNotFound() {
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.empty());
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, product))
+                StepVerifier.create(useCase.addProduct(branchId, product))
                                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
-                                                throwable.getMessage().equals("Franquicia o sucursal no encontradas."))
+                                                throwable.getMessage().equals("Sucursal no encontrada."))
                                 .verify();
 
                 verify(productRepository, times(1))
-                                .addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class));
+                                .addProductToBranch(eq(branchId), any(Product.class));
         }
 
         @Test
@@ -93,16 +90,16 @@ class AddProductToBranchUseCaseTest {
 
                 RuntimeException repositoryError = new RuntimeException("Database connection error");
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.error(repositoryError));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, product))
+                StepVerifier.create(useCase.addProduct(branchId, product))
                                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
                                                 throwable.getMessage().equals("Database connection error"))
                                 .verify();
 
                 verify(productRepository, times(1))
-                                .addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class));
+                                .addProductToBranch(eq(branchId), any(Product.class));
         }
 
         @Test
@@ -111,10 +108,10 @@ class AddProductToBranchUseCaseTest {
 
                 IllegalArgumentException exception = new IllegalArgumentException("Invalid product data");
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.error(exception));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, product))
+                StepVerifier.create(useCase.addProduct(branchId, product))
                                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
                                                 throwable.getMessage().equals("Invalid product data"))
                                 .verify();
@@ -131,10 +128,10 @@ class AddProductToBranchUseCaseTest {
                                 .branchId(branchId)
                                 .build();
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.just(productWithZeroStock));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, productWithZeroStock))
+                StepVerifier.create(useCase.addProduct(branchId, productWithZeroStock))
                                 .expectNextMatches(p -> p.getStock().equals(0))
                                 .verifyComplete();
         }
@@ -150,10 +147,10 @@ class AddProductToBranchUseCaseTest {
                                 .branchId(branchId)
                                 .build();
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.just(productWithLargeStock));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, productWithLargeStock))
+                StepVerifier.create(useCase.addProduct(branchId, productWithLargeStock))
                                 .expectNextMatches(p -> p.getStock().equals(10000))
                                 .verifyComplete();
         }
@@ -176,10 +173,10 @@ class AddProductToBranchUseCaseTest {
                                 .branchId(branchId)
                                 .build();
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.just(savedProduct));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, productWithName))
+                StepVerifier.create(useCase.addProduct(branchId, productWithName))
                                 .expectNextMatches(p -> p.getName().equals(expectedName))
                                 .verifyComplete();
         }
@@ -188,7 +185,6 @@ class AddProductToBranchUseCaseTest {
         @DisplayName("Should handle different franchise and branch IDs")
         void shouldHandleDifferentIds() {
 
-                String differentFranchiseId = "franchise999";
                 String differentBranchId = "branch888";
 
                 Product savedProduct = Product.builder()
@@ -199,17 +195,15 @@ class AddProductToBranchUseCaseTest {
                                 .build();
 
                 when(productRepository.addProductToBranch(
-                                eq(differentFranchiseId),
                                 eq(differentBranchId),
                                 any(Product.class)))
                                 .thenReturn(Mono.just(savedProduct));
 
-                StepVerifier.create(useCase.addProduct(differentFranchiseId, differentBranchId, product))
+                StepVerifier.create(useCase.addProduct(differentBranchId, product))
                                 .expectNextMatches(p -> p.getBranchId().equals(differentBranchId))
                                 .verifyComplete();
 
                 verify(productRepository).addProductToBranch(
-                                eq(differentFranchiseId),
                                 eq(differentBranchId),
                                 any(Product.class));
         }
@@ -218,14 +212,14 @@ class AddProductToBranchUseCaseTest {
         @DisplayName("Should log success when product is added")
         void shouldLogSuccessWhenProductIsAdded() {
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.just(product));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, product))
+                StepVerifier.create(useCase.addProduct(branchId, product))
                                 .expectNextCount(1)
                                 .verifyComplete();
 
-                verify(productRepository).addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class));
+                verify(productRepository).addProductToBranch(eq(branchId), any(Product.class));
         }
 
         @Test
@@ -233,10 +227,10 @@ class AddProductToBranchUseCaseTest {
         void shouldHandleTimeoutError() {
                 RuntimeException timeoutError = new RuntimeException("Request timeout");
 
-                when(productRepository.addProductToBranch(eq(franchiseId), eq(branchId), any(Product.class)))
+                when(productRepository.addProductToBranch(eq(branchId), any(Product.class)))
                                 .thenReturn(Mono.error(timeoutError));
 
-                StepVerifier.create(useCase.addProduct(franchiseId, branchId, product))
+                StepVerifier.create(useCase.addProduct(branchId, product))
                                 .expectErrorMatches(throwable -> throwable.getMessage().equals("Request timeout"))
                                 .verify();
         }

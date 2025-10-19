@@ -15,13 +15,14 @@ public class ProductRouter {
         @Bean
         public RouterFunction<ServerResponse> productRoutes(ProductHandler handler) {
                 return RouterFunctions
-                                .route(POST("/franchises/{franchiseId}/branches/{branchId}/products"),
+                                .route(POST("/branches/{branchId}/products"),
                                                 handler::addProduct)
-                                .andRoute(DELETE("/franchises/{franchiseId}/branches/{branchId}/products/{productId}"),
+                                .andRoute(DELETE("/branches/{branchId}/products/{productId}"),
                                                 handler::deleteProduct)
-                                .andRoute(PUT("/franchises/products/{productId}/stock"),
+                                .andRoute(PUT("/branches/{branchId}/products/{productId}/stock"),
                                                 handler::updateStock)
-                                .andRoute(GET("/franchises/{franchiseId}/max-stock"), handler::getMaxStockProducts)
+                                .andRoute(GET("/franchises/{franchiseId}/products/max-stock"),
+                                                handler::getMaxStockProducts)
                                 .andRoute(PUT("/products/{productId}/name"), handler::updateProductName);
         }
 }
