@@ -5,9 +5,11 @@ spring:
   data:
     mongodb:
       uri: mongodb+srv://danielpinto2407_db_user:ZuVoInMrn002pqZQ@cluster0.o6uappn.mongodb.net/franchise?retryWrites=true&w=majority&appName=Cluster0
+
   graphql:
     graphiql:
       enabled: true
+
 server:
   port: 8080
 
@@ -22,4 +24,4 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
-  
+    path: /swagger-ui/

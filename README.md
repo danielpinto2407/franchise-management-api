@@ -19,6 +19,7 @@ API REST reactiva para la gestión de franquicias, sucursales y productos, desar
 - [Docker](#-docker)
 - [Decisiones de Diseño](#-decisiones-de-diseño)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
+- [GraphQl](#-GraphQl)
 - [Autor](#-autor)
 
 ---
@@ -823,5 +824,164 @@ Este proyecto es una prueba técnica para SETI S.A.S.
 - [x] Flujo de trabajo con Git (commits organizados)
 
 ---
+### GraphQl
 
-⭐ **Proyecto completado al 100% de los requisitos obligatorios + extras (excepto IaC)**
+Además de la API REST, el proyecto ahora incluye **un endpoint GraphQL unificado** para manejar operaciones sobre franquicias, sucursales y productos desde un único punto.
+
+### 📌 Endpoint
+
+```
+POST /graphql
+Content-Type: application/json
+```
+
+### 🧬 Esquema GraphQL
+
+```graphql
+type Franchise {
+  id: ID!
+  name: String!
+  branches: [Branch]
+}
+
+type Branch {
+  id: ID!
+  name: String!
+  franchiseId: ID!
+  products: [Product]
+}
+
+type Product {
+  id: ID!
+  name: String!
+  stock: Int!
+  branchId: ID!
+}
+
+type Query {
+  franchises: [Franchise]
+  franchiseById(id: ID!): Franchise
+  branchesByFranchise(franchiseId: ID!): [Branch]
+  productsByBranch(branchId: ID!): [Product]
+}
+
+type Mutation {
+  createFranchise(name: String!): Franchise
+  createBranch(franchiseId: ID!, name: String!): Branch
+  createProduct(branchId: ID!, name: String!, stock: Int!): Product
+  updateBranchName(branchId: ID!, name: String!): Branch
+  updateProductName(productId: ID!, name: String!): Product
+  updateProductStock(productId: ID!, stock: Int!): Product
+  deleteProduct(productId: ID!): Boolean
+}
+```
+
+---
+
+## 🧪 Ejemplo: Mutation para Crear una Sucursal (Branch)
+
+### 📥 Payload GraphQL
+
+```json
+{
+  "query": "mutation ($inputFranchiseId: ID!, $inputName: String!) { createBranch(franchiseId: $inputFranchiseId, name: $inputName) { id name franchiseId } }",
+  "variables": {
+    "inputFranchiseId": "6735e80f94ed7a7c8f1a93c2",
+    "inputName": "Sucursal Centro"
+  }
+}
+```
+
+### 📤 Respuesta
+
+```json
+{
+  "data": {
+    "createBranch": {
+      "id": "6735e8d994ed7a7c8f1a93c6",
+      "name": "Sucursal Centro",
+      "franchiseId": "6735e80f94ed7a7c8f1a93c2"
+    }
+  }
+}
+```
+
+---
+
+## 📌 Secciones Actualizadas
+
+Se ha integrado GraphQL en las siguientes partes del README:
+
+* **Descripción general del proyecto**
+* **Lista de tecnologías utilizadas** (incluye `spring-graphql`)
+* **Nuevos ejemplos de queries y mutations**
+* **Compatibilidad paralela con REST + GraphQL**
+
+---
+
+## 🛠️ Tecnologías Utilizadas (Actualizado)
+
+| Tecnología           | Versión | Uso               |
+| -------------------- | ------- | ----------------- |
+| **Spring WebFlux**   | 3.2.x   | API REST Reactiva |
+| **Spring GraphQL**   | 1.3.x   | Servidor GraphQL  |
+| **MongoDB Reactive** | 7.x     | Acceso a datos    |
+
+---
+
+## 📡 Operaciones GraphQL Disponibles
+
+### 🏷️ Query: Obtener Franquicias
+
+```graphql
+query {
+  franchises {
+    id
+    name
+    branches { id name }
+  }
+}
+```
+
+### 🏷️ Query: Productos por Sucursal
+
+```graphql
+query Products($branchId: ID!) {
+  productsByBranch(branchId: $branchId) {
+    id
+    name
+    stock
+  }
+}
+```
+
+### 🛠️ Mutation: Actualizar Stock
+
+```graphql
+mutation UpdateStock($id: ID!, $qty: Int!) {
+  updateProductStock(productId: $id, stock: $qty) {
+    id
+    name
+    stock
+  }
+}
+```
+
+---
+
+## 🧭 Filosofía de la Integración REST + GraphQL
+
+**REST** se mantiene para:
+
+* Uso estándar de microservicios
+* Compatibilidad con API Gateway
+* Simplicidad para clientes móviles
+
+**GraphQL** se añade para:
+
+* Frontends complejos (React, Angular)
+* Reducción de múltiples llamadas REST
+* Consultas fuertemente tipadas
+* Retorno de datos exactos (sin overfetching)
+
+Ambos conviven en el proyecto.
