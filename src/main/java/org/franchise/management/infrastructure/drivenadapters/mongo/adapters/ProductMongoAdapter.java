@@ -9,6 +9,8 @@ import org.franchise.management.domain.model.Branch;
 import org.franchise.management.domain.model.Franchise;
 import org.franchise.management.domain.model.Product;
 import org.franchise.management.domain.repository.ProductRepository;
+import org.franchise.management.infrastructure.config.constants.Constants;
+import org.franchise.management.infrastructure.config.constants.ErrorConstants;
 import org.franchise.management.infrastructure.drivenadapters.mongo.repository.BranchMongoRepository;
 import org.franchise.management.infrastructure.drivenadapters.mongo.repository.ProductMongoRepository;
 import org.springframework.data.domain.Sort;
@@ -33,9 +35,9 @@ public class ProductMongoAdapter implements ProductRepository {
     @Override
     public Mono<Product> addProductToBranch(String branchId, Product product) {
 
-        Query branchExistsQuery = new Query(Criteria.where("_id").is(branchId));
+        Query branchExistsQuery = new Query(Criteria.where(Constants._ID).is(branchId));
 
-        return mongoTemplate.exists(branchExistsQuery, "branches")
+        return mongoTemplate.exists(branchExistsQuery, Constants.BRANCHES)
                 .flatMap(exists -> {
                     if (!exists) {
                         return Mono.empty();
@@ -45,10 +47,10 @@ public class ProductMongoAdapter implements ProductRepository {
                     return mongoTemplate.save(product);
                 })
                 .flatMap(savedProduct -> {
-                    Query branchQuery = new Query(Criteria.where("_id").is(branchId));
+                    Query branchQuery = new Query(Criteria.where(Constants._ID).is(branchId));
                     Update update = new Update().addToSet("productIds", savedProduct.getId());
 
-                    return mongoTemplate.updateFirst(branchQuery, update, "branches")
+                    return mongoTemplate.updateFirst(branchQuery, update, Constants.BRANCHES)
                             .thenReturn(savedProduct);
                 });
     }
@@ -74,9 +76,11 @@ public class ProductMongoAdapter implements ProductRepository {
 
     private Mono<Tuple2<Branch, Product>> validateBranchAndProduct(String branchId, String productId) {
         return branchMongoRepository.findById(branchId)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Branch no encontrado: " + branchId)))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(ErrorConstants.NOT_FOUND_BRANCH + branchId)))
                 .zipWhen(branch -> productMongoRepository.findById(productId)
-                        .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado: " + productId)))
+                        .switchIfEmpty(
+                                Mono.error(
+                                        new IllegalArgumentException(ErrorConstants.NOT_FOUND_PRODUCT + productId)))
                         .flatMap(product -> {
                             if (!branchId.equals(product.getBranchId())) {
                                 return Mono.error(new IllegalArgumentException(
@@ -89,7 +93,7 @@ public class ProductMongoAdapter implements ProductRepository {
     @Override
     public Mono<Product> updateProductStock(String productId, Integer newStock) {
         return productMongoRepository.findById(productId)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado")))
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(ErrorConstants.NOT_FOUND_PRODUCT + productId)))
                 .flatMap(product -> {
                     product.updateStock(newStock);
                     return productMongoRepository.save(product);
@@ -99,7 +103,7 @@ public class ProductMongoAdapter implements ProductRepository {
 
     @Override
     public Flux<Product> findMaxStockProductByBranch(String franchiseId) {
-        Query franchiseQuery = Query.query(Criteria.where("_id").is(franchiseId));
+        Query franchiseQuery = Query.query(Criteria.where(Constants._ID).is(franchiseId));
 
         return mongoTemplate.findOne(franchiseQuery, Franchise.class, "franchises")
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Franquicia no encontrada")))
@@ -128,7 +132,7 @@ public class ProductMongoAdapter implements ProductRepository {
                     return productMongoRepository.save(product);
                 })
                 .doOnNext(p -> log.info("Nombre de producto actualizado: {} → {}", productId, newName))
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Producto no encontrado")));
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(ErrorConstants.NOT_FOUND_PRODUCT + productId)));
     }
 
 }

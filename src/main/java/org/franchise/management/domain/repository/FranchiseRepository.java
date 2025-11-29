@@ -13,4 +13,6 @@ public interface FranchiseRepository {
 
     Mono<Franchise> update(Franchise franchise);
 
+    Mono<Franchise> findById(String id);
+
 }

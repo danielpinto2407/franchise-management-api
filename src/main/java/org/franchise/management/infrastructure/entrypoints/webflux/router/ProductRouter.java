@@ -1,6 +1,6 @@
-package org.franchise.management.entrypoints.webflux.router;
+package org.franchise.management.infrastructure.entrypoints.webflux.router;
 
-import org.franchise.management.entrypoints.webflux.handler.ProductHandler;
+import org.franchise.management.infrastructure.entrypoints.webflux.handler.ProductHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;

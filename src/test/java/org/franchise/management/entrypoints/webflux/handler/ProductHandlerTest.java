@@ -2,10 +2,11 @@ package org.franchise.management.entrypoints.webflux.handler;
 
 import org.franchise.management.application.usecase.*;
 import org.franchise.management.domain.model.Product;
-import org.franchise.management.entrypoints.webflux.dto.ProductRequestDTO;
-import org.franchise.management.entrypoints.webflux.dto.UpdateNameRequestDTO;
-import org.franchise.management.entrypoints.webflux.dto.UpdateStockRequestDTO;
-import org.franchise.management.entrypoints.webflux.util.ValidationUtil;
+import org.franchise.management.infrastructure.entrypoints.webflux.dto.ProductRequestDTO;
+import org.franchise.management.infrastructure.entrypoints.webflux.dto.UpdateNameRequestDTO;
+import org.franchise.management.infrastructure.entrypoints.webflux.dto.UpdateStockRequestDTO;
+import org.franchise.management.infrastructure.entrypoints.webflux.handler.ProductHandler;
+import org.franchise.management.infrastructure.entrypoints.webflux.util.ValidationUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

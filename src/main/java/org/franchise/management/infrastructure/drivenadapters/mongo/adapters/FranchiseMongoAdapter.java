@@ -6,7 +6,6 @@ import org.franchise.management.infrastructure.drivenadapters.mongo.repository.F
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Log4j2
@@ -27,4 +26,11 @@ public class FranchiseMongoAdapter implements FranchiseRepository {
         log.info("Actualizando franquicia: {}", franchise.getId());
         return franchiseMongoRepository.save(franchise);
     }
+
+    @Override
+    public Mono<Franchise> findById(String id) {
+        log.info("Buscando franquicia con id: {}", id);
+        return franchiseMongoRepository.findById(id);
+    }
+
 }

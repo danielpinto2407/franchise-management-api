@@ -1,4 +1,4 @@
-package org.franchise.management.entrypoints.webflux.dto;
+package org.franchise.management.infrastructure.entrypoints.graphql.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FranchiseRequestDTO {
-
-    @NotBlank(message = "El nombre de la franquicia es obligatorio")
+public class FranchiseInput {
+    @NotBlank(message = "El nombre es obligatorio")
     private String name;
 }

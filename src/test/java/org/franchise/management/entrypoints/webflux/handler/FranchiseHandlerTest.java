@@ -2,8 +2,9 @@ package org.franchise.management.entrypoints.webflux.handler;
 
 import org.franchise.management.application.usecase.CreateFranchiseUseCase;
 import org.franchise.management.domain.model.Franchise;
-import org.franchise.management.entrypoints.webflux.dto.FranchiseRequestDTO;
-import org.franchise.management.entrypoints.webflux.util.ValidationUtil;
+import org.franchise.management.infrastructure.entrypoints.webflux.dto.FranchiseRequestDTO;
+import org.franchise.management.infrastructure.entrypoints.webflux.handler.FranchiseHandler;
+import org.franchise.management.infrastructure.entrypoints.webflux.util.ValidationUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;

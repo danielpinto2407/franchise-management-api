@@ -1,4 +1,4 @@
-package org.franchise.management.entrypoints.webflux.dto;
+package org.franchise.management.infrastructure.entrypoints.webflux.dto;
 
 import org.franchise.management.domain.model.Branch;
 import org.franchise.management.domain.model.Franchise;

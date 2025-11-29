@@ -1,13 +1,13 @@
 package org.franchise.management.entrypoints.webflux.router;
 
-import org.franchise.management.entrypoints.webflux.handler.FranchiseHandler;
+import org.franchise.management.infrastructure.entrypoints.webflux.handler.FranchiseHandler;
+import org.franchise.management.infrastructure.entrypoints.webflux.router.FranchiseRouter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;

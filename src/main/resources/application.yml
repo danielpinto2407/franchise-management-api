@@ -5,7 +5,9 @@ spring:
   data:
     mongodb:
       uri: mongodb+srv://danielpinto2407_db_user:ZuVoInMrn002pqZQ@cluster0.o6uappn.mongodb.net/franchise?retryWrites=true&w=majority&appName=Cluster0
-
+  graphql:
+    graphiql:
+      enabled: true
 server:
   port: 8080
 
@@ -14,3 +16,10 @@ logging:
     root: INFO
     com.franchise.management: DEBUG
     org.springframework.data.mongodb.core: DEBUG
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+  

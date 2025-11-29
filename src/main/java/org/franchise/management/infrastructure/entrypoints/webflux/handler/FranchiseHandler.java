@@ -1,12 +1,12 @@
-package org.franchise.management.entrypoints.webflux.handler;
+package org.franchise.management.infrastructure.entrypoints.webflux.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.franchise.management.application.usecase.CreateFranchiseUseCase;
-import org.franchise.management.entrypoints.webflux.dto.DTOMapper;
-import org.franchise.management.entrypoints.webflux.dto.FranchiseRequestDTO;
-import org.franchise.management.entrypoints.webflux.util.ResponseUtil;
-import org.franchise.management.entrypoints.webflux.util.ValidationUtil;
+import org.franchise.management.infrastructure.entrypoints.webflux.dto.DTOMapper;
+import org.franchise.management.infrastructure.entrypoints.webflux.dto.FranchiseRequestDTO;
+import org.franchise.management.infrastructure.entrypoints.webflux.util.ResponseUtil;
+import org.franchise.management.infrastructure.entrypoints.webflux.util.ValidationUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;

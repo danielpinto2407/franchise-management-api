@@ -1,4 +1,4 @@
-package org.franchise.management.entrypoints.webflux.dto;
+package org.franchise.management.infrastructure.entrypoints.webflux.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

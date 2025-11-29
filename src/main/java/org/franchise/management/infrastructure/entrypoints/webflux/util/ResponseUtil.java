@@ -1,6 +1,7 @@
-package org.franchise.management.entrypoints.webflux.util;
+package org.franchise.management.infrastructure.entrypoints.webflux.util;
 
 import lombok.extern.log4j.Log4j2;
+import org.franchise.management.infrastructure.config.constants.ResponseConstants;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -11,7 +12,7 @@ import java.util.Map;
 public class ResponseUtil {
 
     private ResponseUtil() {
-        // Clase utilitaria, no se instancia
+
     }
 
     /** Respuesta 200 OK con cuerpo JSON */
@@ -25,12 +26,12 @@ public class ResponseUtil {
     public static Mono<ServerResponse> badRequest(String message) {
         return ServerResponse.badRequest()
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(Map.of("error", message));
+                .bodyValue(Map.of(ResponseConstants.ERROR, message));
     }
 
     /** Manejo de cuerpo vacío */
     public static Mono<ServerResponse> emptyBody() {
-        return badRequest("El cuerpo de la solicitud está vacío");
+        return badRequest(ResponseConstants.EMPTY_BODY_ERROR);
     }
 
     /** Manejo de errores genérico */

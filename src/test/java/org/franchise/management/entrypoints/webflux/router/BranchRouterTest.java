@@ -1,6 +1,7 @@
 package org.franchise.management.entrypoints.webflux.router;
 
-import org.franchise.management.entrypoints.webflux.handler.BranchHandler;
+import org.franchise.management.infrastructure.entrypoints.webflux.handler.BranchHandler;
+import org.franchise.management.infrastructure.entrypoints.webflux.router.BranchRouter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

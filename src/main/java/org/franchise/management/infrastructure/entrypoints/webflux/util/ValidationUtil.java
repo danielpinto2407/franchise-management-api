@@ -1,9 +1,10 @@
-package org.franchise.management.entrypoints.webflux.util;
+package org.franchise.management.infrastructure.entrypoints.webflux.util;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.franchise.management.infrastructure.config.constants.ValidationConstants;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -34,7 +35,7 @@ public class ValidationUtil {
         }
 
         String errorMessage = buildErrorMessage(violations);
-        log.warn("Validation failed: {}", errorMessage);
+        log.warn(ValidationConstants.FAILED_VALIDATION + ": {}", errorMessage);
 
         return Mono.error(new IllegalArgumentException(errorMessage));
     }
@@ -60,7 +61,7 @@ public class ValidationUtil {
         }
 
         String errorMessage = buildDetailedErrorMessage(violations);
-        log.warn("Validation failed: {}", errorMessage);
+        log.warn(ValidationConstants.FAILED_VALIDATION + ": {}", errorMessage);
 
         return Mono.error(new IllegalArgumentException(errorMessage));
     }

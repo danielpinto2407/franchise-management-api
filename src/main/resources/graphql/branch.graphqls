@@ -1,0 +1,100 @@
+# ===========================
+#        TYPES
+# ===========================
+
+type Franchise {
+  id: ID!
+  name: String!
+  branches: [Branch!]!
+  totalBranches: Int!
+  createdAt: String
+  updatedAt: String
+}
+
+type Branch {
+  id: ID!
+  name: String!
+  franchise: Franchise!
+  products: [Product!]!
+  createdAt: String
+  updatedAt: String
+}
+
+type Product {
+  id: ID!
+  name: String!
+  stock: Int!
+  branch: Branch!
+  createdAt: String
+  updatedAt: String
+}
+
+# ===========================
+#        INPUTS
+# ===========================
+
+input FranchiseInput {
+  name: String!
+}
+
+input UpdateFranchiseInput {
+  name: String
+}
+
+input BranchInput {
+  name: String!
+}
+
+input UpdateBranchInput {
+  name: String
+  addProductIds: [ID!]
+  removeProductIds: [ID!]
+}
+
+input ProductInput {
+  name: String!
+  stock: Int!
+  branchId: ID!
+}
+
+# ===========================
+#        QUERIES
+# ===========================
+
+type Query {
+  franchises: [Franchise!]!
+  franchiseById(id: ID!): Franchise
+
+  branches(franchiseId: ID!): [Branch!]!
+  branchById(branchId: ID!): Branch
+
+  products(branchId: ID!): [Product!]!
+  productById(productId: ID!): Product
+
+  maxStockProducts(franchiseId: ID!): [Product!]!
+}
+
+
+# ===========================
+#        MUTATIONS
+# ===========================
+
+type Mutation {
+  # Franchise mutations
+  createFranchise(input: FranchiseInput!): Franchise!
+  updateFranchise(id: ID!, input: UpdateFranchiseInput!): Franchise!
+  deleteFranchise(id: ID!): Boolean!
+
+  # Branch mutations
+  addBranch(franchiseId: ID!, input: BranchInput!): Branch!
+  updateBranch(branchId: ID!, input: UpdateBranchInput!): Branch!
+  deleteBranch(branchId: ID!): Boolean!
+
+  # Product mutations (CORREGIDAS)
+  addProduct(input: ProductInput!): Product!
+
+  updateProductName(productId: ID!, name: String!): Product!
+  updateProductStock(productId: ID!, stock: Int!): Product!
+
+  deleteProduct(branchId: ID!, productId: ID!): Boolean!
+}
